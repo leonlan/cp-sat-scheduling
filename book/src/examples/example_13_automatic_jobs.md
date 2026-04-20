@@ -1,4 +1,4 @@
-# 13 - Automatic jobs
+# Automatic jobs
 
 **Source:** `scheduling/example_13_automatic_jobs.py`
 

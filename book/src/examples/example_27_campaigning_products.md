@@ -1,4 +1,4 @@
-# 27 - Campaigning across products
+# Campaigning across products
 
 **Source:** `scheduling/example_27_campaigning_products.py`
 

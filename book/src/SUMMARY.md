@@ -15,43 +15,67 @@
 - [Campaigning](./concepts/campaigning.md)
 - [Solver techniques](./concepts/solver-techniques.md)
 
-# Examples
+# Examples: basics
 
 - [Overview](./examples/overview.md)
-- [00 - Unit tests](./examples/example_00_unit_tests.md)
-- [01 - Simple sequence](./examples/example_01_simple_sequence.md)
-- [02 - Sequence with locked starting product](./examples/example_02_seq_lock_starting_product.md)
-- [03a - Multi-station sequence](./examples/example_03_seq_multi_stations.md)
-- [03b - Multi-station scale benchmark](./examples/example_03_seq_scale.md)
-- [03c - Multi-station scale (Mathieu, intervals)](./examples/example_03_seq_scale_Mathieu.md)
-- [04 - Changeover in constraint](./examples/example_04_seq_with_changeover_in_constraint.md)
-- [05 - Sequence with intervals](./examples/example_05_seq_with_intervals.md)
-- [06 - Sequence with shared resource](./examples/example_06_seq_with_intervals_resource.md)
-- [07 - Break without changeover](./examples/example_07_break_without_changeover.md)
-- [08 - Changeover as event](./examples/example_08_changeover_as_event.md)
-- [09 - Max continuous tasks](./examples/example_09_max_number_of_continuous_tasks.md)
-- [10 - People mode](./examples/example_10_people_mode.md)
-- [11 - Resource mode (empty)](./examples/example_11_resource_mode.md)
-- [12 - One automatic job](./examples/example_12_an_automatic_job.md)
-- [13 - Automatic jobs](./examples/example_13_automatic_jobs.md)
-- [14 - Task delaying a break](./examples/example_14_task_delaying_break.md)
-- [15 - Events overlapping](./examples/example_15_events_overlapping.md)
-- [16 - Shift crossing (fake time unit)](./examples/example_16_shift_crossing_fake_time_unit.md)
-- [17 - Shift crossing (Mathieu)](./examples/example_17_shift_crossing_mathieu.md)
-- [18 - Campaigning time constraint (empty)](./examples/example_18_campaigning_time_constraint.md)
-- [19 - Cleaning holding time (empty)](./examples/example_19_cleaning_holding_time.md)
-- [21 - Stages, one job](./examples/example_21_stages_one_job.md)
-- [22 - Stages, two jobs](./examples/example_22_stages_two_jobs.md)
-- [23 - Multistage, two jobs](./examples/example_23_multistage_two_jobs_co.md)
-- [24 - Campaigning with cumul](./examples/example_24_campaigning_with_cumul.md)
-- [25 - Campaigning, locked sequence](./examples/example_25_campaigning_with_locked_seq.md)
-- [26a - Campaigning, locked sequence improved](./examples/example_26_campaigning_locked_seq_improved.md)
-- [26b - Campaigning, locked sequence improved (flexible)](./examples/example_26_campaigning_locked_seq_improved_flexible.md)
-- [27 - Campaigning across products](./examples/example_27_campaigning_products.md)
-- [28 - Campaigning products x machines](./examples/example_28_campaigning_products_machines.md)
-- [29 - Linear domain for breaks](./examples/example_29_linear_domain_for_breaks.md)
-- [30 - Campaigning with pregrouping (empty)](./examples/example_30_campaigning_with_pregrouping.md)
-- [31 - Campaigning faster](./examples/example_31_campaigning_faster.md)
-- [32 - Solving by phases](./examples/example_32_solving_by_phases.md)
-- [33 - Conditional duration via linear domain](./examples/example_33_conditional_duration_linear_domain.md)
-- [34 - Headcount tracking](./examples/example_34_headcount_tracking.md)
+- [Unit tests](./examples/example_00_unit_tests.md)
+- [Events overlapping](./examples/example_15_events_overlapping.md)
+
+# Examples: sequencing
+
+- [Simple sequence](./examples/example_01_simple_sequence.md)
+- [Sequence with locked starting product](./examples/example_02_seq_lock_starting_product.md)
+- [Multi-station sequence](./examples/example_03_seq_multi_stations.md)
+- [Multi-station scale benchmark](./examples/example_03_seq_scale.md)
+- [Multi-station scale (intervals)](./examples/example_03_seq_scale_Mathieu.md)
+
+# Examples: changeover and intervals
+
+- [Changeover in constraint](./examples/example_04_seq_with_changeover_in_constraint.md)
+- [Sequence with intervals](./examples/example_05_seq_with_intervals.md)
+- [Sequence with shared resource](./examples/example_06_seq_with_intervals_resource.md)
+- [Changeover as event](./examples/example_08_changeover_as_event.md)
+
+# Examples: breaks
+
+- [Break without changeover](./examples/example_07_break_without_changeover.md)
+- [One automatic job](./examples/example_12_an_automatic_job.md)
+- [Automatic jobs](./examples/example_13_automatic_jobs.md)
+- [Task delaying a break](./examples/example_14_task_delaying_break.md)
+- [Linear domain for breaks](./examples/example_29_linear_domain_for_breaks.md)
+- [Conditional duration via linear domain](./examples/example_33_conditional_duration_linear_domain.md)
+
+# Examples: shifts
+
+- [Shift crossing (fake time unit)](./examples/example_16_shift_crossing_fake_time_unit.md)
+- [Shift crossing (Mathieu)](./examples/example_17_shift_crossing_mathieu.md)
+
+# Examples: multi-stage jobs
+
+- [Stages, one job](./examples/example_21_stages_one_job.md)
+- [Stages, two jobs](./examples/example_22_stages_two_jobs.md)
+- [Multistage, two jobs](./examples/example_23_multistage_two_jobs_co.md)
+
+# Examples: resources
+
+- [People mode](./examples/example_10_people_mode.md)
+- [Resource mode (empty)](./examples/example_11_resource_mode.md)
+- [Headcount tracking](./examples/example_34_headcount_tracking.md)
+
+# Examples: campaigning
+
+- [Max number of continuous tasks](./examples/example_09_max_number_of_continuous_tasks.md)
+- [Campaigning time constraint (empty)](./examples/example_18_campaigning_time_constraint.md)
+- [Cleaning holding time (empty)](./examples/example_19_cleaning_holding_time.md)
+- [Campaigning with cumul](./examples/example_24_campaigning_with_cumul.md)
+- [Campaigning, locked sequence](./examples/example_25_campaigning_with_locked_seq.md)
+- [Campaigning, locked sequence improved](./examples/example_26_campaigning_locked_seq_improved.md)
+- [Campaigning, locked sequence improved (flexible)](./examples/example_26_campaigning_locked_seq_improved_flexible.md)
+- [Campaigning across products](./examples/example_27_campaigning_products.md)
+- [Campaigning products x machines](./examples/example_28_campaigning_products_machines.md)
+- [Campaigning with pregrouping (empty)](./examples/example_30_campaigning_with_pregrouping.md)
+- [Campaigning faster](./examples/example_31_campaigning_faster.md)
+
+# Examples: solver techniques
+
+- [Solving by phases](./examples/example_32_solving_by_phases.md)

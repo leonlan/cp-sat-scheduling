@@ -1,4 +1,4 @@
-# 22 - Stages, two jobs
+# Stages, two jobs
 
 **Source:** `scheduling/example_22_stages_two_jobs.py`
 

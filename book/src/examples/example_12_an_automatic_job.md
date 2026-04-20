@@ -1,4 +1,4 @@
-# 12 - One automatic job
+# One automatic job
 
 **Source:** `scheduling/example_12_an_automatic_job.py`
 

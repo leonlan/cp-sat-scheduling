@@ -1,4 +1,4 @@
-# 03c - Multi-station scale (intervals)
+# Multi-station scale (intervals)
 
 **Source:** `scheduling/example_03_seq_scale_Mathieu.py`
 

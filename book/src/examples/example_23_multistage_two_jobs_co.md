@@ -1,4 +1,4 @@
-# 23 - Multistage, two jobs
+# Multistage, two jobs
 
 **Source:** `scheduling/example_23_multistage_two_jobs_co.py`
 

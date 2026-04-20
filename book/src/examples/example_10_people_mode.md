@@ -1,4 +1,4 @@
-# 10 - People mode
+# People mode
 
 **Source:** `scheduling/example_10_people_mode.py`
 

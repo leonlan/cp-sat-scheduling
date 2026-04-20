@@ -1,4 +1,4 @@
-# 09 - Max number of continuous tasks
+# Max number of continuous tasks
 
 **Source:** `scheduling/example_09_max_number_of_continuous_tasks.py`
 

@@ -1,4 +1,4 @@
-# 28 - Campaigning products x machines
+# Campaigning products x machines
 
 **Source:** `scheduling/example_28_campaigning_products_machines.py`
 

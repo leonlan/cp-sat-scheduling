@@ -1,4 +1,4 @@
-# 26a - Campaigning, locked sequence improved
+# Campaigning, locked sequence improved
 
 **Source:** `scheduling/example_26_campaigning_locked_seq_improved.py`
 

@@ -1,4 +1,4 @@
-# 01 - Simple sequence
+# Simple sequence
 
 **Source:** `scheduling/example_01_simple_sequence.py`
 

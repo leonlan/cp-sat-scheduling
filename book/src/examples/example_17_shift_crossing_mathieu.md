@@ -1,4 +1,4 @@
-# 17 - Shift crossing (Mathieu)
+# Shift crossing (Mathieu)
 
 **Source:** `scheduling/example_17_shift_crossing_mathieu.py`
 

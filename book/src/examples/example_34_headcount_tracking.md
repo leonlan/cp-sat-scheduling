@@ -1,4 +1,4 @@
-# 34 - Headcount tracking
+# Headcount tracking
 
 **Source:** `scheduling/example_34_headcount_tracking.py`
 

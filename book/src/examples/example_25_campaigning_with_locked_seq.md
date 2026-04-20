@@ -1,4 +1,4 @@
-# 25 - Campaigning, locked sequence
+# Campaigning, locked sequence
 
 **Source:** `scheduling/example_25_campaigning_with_locked_seq.py`
 

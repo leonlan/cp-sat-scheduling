@@ -1,4 +1,4 @@
-# 08 - Changeover as event
+# Changeover as event
 
 **Source:** `scheduling/example_08_changeover_as_event.py`
 

@@ -1,4 +1,4 @@
-# 07 - Break without changeover
+# Break without changeover
 
 **Source:** `scheduling/example_07_break_without_changeover.py`
 

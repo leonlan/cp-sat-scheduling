@@ -1,4 +1,4 @@
-# 33 - Conditional duration via linear domain
+# Conditional duration via linear domain
 
 **Source:** `scheduling/example_33_conditional_duration_linear_domain.py`
 

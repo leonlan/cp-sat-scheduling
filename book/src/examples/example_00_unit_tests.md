@@ -1,4 +1,4 @@
-# 00 - Unit tests
+# Unit tests
 
 **Source:** `scheduling/example_00_unit_tests.py`
 

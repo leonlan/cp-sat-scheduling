@@ -1,4 +1,4 @@
-# 24 - Campaigning with cumul
+# Campaigning with cumul
 
 **Source:** `scheduling/example_24_campaigning_with_cumul.py`
 

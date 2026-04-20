@@ -1,4 +1,4 @@
-# 31 - Campaigning faster
+# Campaigning faster
 
 **Source:** `scheduling/example_31_campaigning_faster.py`
 

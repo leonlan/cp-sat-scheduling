@@ -1,4 +1,4 @@
-# 05 - Sequence with intervals
+# Sequence with intervals
 
 **Source:** `scheduling/example_05_seq_with_intervals.py`
 

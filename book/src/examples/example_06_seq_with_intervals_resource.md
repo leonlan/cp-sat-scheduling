@@ -1,4 +1,4 @@
-# 06 - Sequence with shared resource
+# Sequence with shared resource
 
 **Source:** `scheduling/example_06_seq_with_intervals_resource.py`
 

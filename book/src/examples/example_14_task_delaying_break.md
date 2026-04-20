@@ -1,4 +1,4 @@
-# 14 - Task delaying a break
+# Task delaying a break
 
 **Source:** `scheduling/example_14_task_delaying_break.py`
 

@@ -1,4 +1,4 @@
-# 03a - Multi-station sequence
+# Multi-station sequence
 
 **Source:** `scheduling/example_03_seq_multi_stations.py`
 

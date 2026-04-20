@@ -1,4 +1,4 @@
-# 03b - Multi-station scale benchmark
+# Multi-station scale benchmark
 
 **Source:** `scheduling/example_03_seq_scale.py`
 

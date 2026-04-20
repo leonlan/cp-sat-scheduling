@@ -1,4 +1,4 @@
-# 02 - Sequence with locked starting product
+# Sequence with locked starting product
 
 **Source:** `scheduling/example_02_seq_lock_starting_product.py`
 

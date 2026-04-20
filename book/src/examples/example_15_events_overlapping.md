@@ -1,4 +1,4 @@
-# 15 - Events overlapping
+# Events overlapping
 
 **Source:** `scheduling/example_15_events_overlapping.py`
 

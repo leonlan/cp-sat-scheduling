@@ -1,4 +1,4 @@
-# 16 - Shift crossing (fake time unit)
+# Shift crossing (fake time unit)
 
 **Source:** `scheduling/example_16_shift_crossing_fake_time_unit.py`
 

@@ -1,4 +1,4 @@
-# 32 - Solving by phases
+# Solving by phases
 
 **Source:** `scheduling/example_32_solving_by_phases.py`
 

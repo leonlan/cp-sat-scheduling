@@ -3,16 +3,24 @@
 Each example in this section corresponds to one Python file under
 `scheduling/`. Chapters are kept short: a brief description, the concepts it
 demonstrates (linked back to the [Concepts](../concepts/cp-sat-basics.md)
-section), and pointers to the relevant lines of the source file.
+section), and the source file inlined at the bottom.
 
-The examples are numbered and build on each other. A typical reading path:
+Examples are grouped by topic in the sidebar:
 
-1. Start with [00 - Unit tests](./example_00_unit_tests.md) if CP-SAT itself is
-   new to you.
-2. Work through 01 - 08 for sequencing and changeover.
-3. 09, 24 - 28, 31 cover campaigning from two different angles.
-4. 12 - 17 cover breaks, shifts, and automatic jobs.
-5. 21 - 23 cover multi-stage jobs.
-6. 29, 32, 33, 34 cover advanced modeling and solver techniques.
+- **Basics** - CP-SAT primitives and small modeling tricks.
+- **Sequencing** - ordering tasks on one or more machines.
+- **Changeover and intervals** - different ways to model switches between
+  products and the move from manual durations to interval variables.
+- **Breaks** - unavailable time windows, including breaks that extend a
+  task's duration and automatic jobs that only need an operator for setup.
+- **Shifts** - preventing tasks from crossing shift boundaries.
+- **Multi-stage jobs** - jobs with ordered stages and per-stage capacity.
+- **Resources** - flexible resource/headcount modes and time-varying
+  demand tracking.
+- **Campaigning** - grouping same-product tasks between changeovers, with
+  multiple modelling approaches.
+- **Solver techniques** - warm-starting CP-SAT across phases with hints.
 
-Examples 11, 18, 19, 30 are empty placeholders kept for numbering.
+A few files (`example_11`, `example_18`, `example_19`, `example_30`) are
+empty placeholders kept for numbering; their chapters only note what they
+would have covered.

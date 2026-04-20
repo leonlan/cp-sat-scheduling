@@ -1,4 +1,4 @@
-# 04 - Changeover in constraint
+# Changeover in constraint
 
 **Source:** `scheduling/example_04_seq_with_changeover_in_constraint.py`
 

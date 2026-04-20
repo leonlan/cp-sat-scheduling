@@ -1,4 +1,4 @@
-# 29 - Linear domain for breaks
+# Linear domain for breaks
 
 **Source:** `scheduling/example_29_linear_domain_for_breaks.py`
 
