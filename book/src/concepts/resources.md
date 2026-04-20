@@ -1,13 +1,13 @@
 # Resources and cumulative
 
-`AddNoOverlap` says "at most one interval at a time". `AddCumulative` is the
+`add_no_overlap` says "at most one interval at a time". `add_cumulative` is the
 generalisation: each interval consumes some amount of a shared resource, and
 the total consumption must not exceed a capacity.
 
 ## No-overlap
 
 ```python
-model.AddNoOverlap(intervals)
+model.add_no_overlap(intervals)
 ```
 
 Used per machine (one task at a time) and per stage (one job at a time in a
@@ -16,7 +16,7 @@ flow-shop style).
 ## Cumulative
 
 ```python
-model.AddCumulative(intervals, demands, capacity)
+model.add_cumulative(intervals, demands, capacity)
 ```
 
 `demands[i]` is the amount of resource taken by `intervals[i]` while it runs.
@@ -38,8 +38,8 @@ actual processing time from it:
 
 ```python
 for t in tasks:
-    model.AddExactlyOne([mode[t, k] for k in modes])
-    model.Add(
+    model.add_exactly_one([mode[t, k] for k in modes])
+    model.add(
         proc_time[t] == sum(processing_time[product[t], k] * mode[t, k] for k in modes)
     )
 ```
@@ -49,7 +49,7 @@ Example: `example_10_people_mode.py`.
 ## Headcount tracking
 
 If the per-task resource depends on whether the task overlaps a break (or
-some other condition), plain `AddCumulative` may be insufficient. Build an
+some other condition), plain `add_cumulative` may be insufficient. Build an
 explicit per-timestep resource variable and link it to task-start presence
 booleans. Three methods are compared in
 `example_34_headcount_tracking.py`.

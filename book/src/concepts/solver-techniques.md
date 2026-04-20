@@ -9,7 +9,7 @@ first. Often needed when a symmetric model returns a "correct but ugly"
 schedule.
 
 ```python
-model.AddDecisionStrategy(
+model.add_decision_strategy(
     starts.values(),
     cp_model.CHOOSE_FIRST,
     cp_model.SELECT_MIN_VALUE,
@@ -33,14 +33,14 @@ resulting speedup.
 You can seed the search with values for any subset of variables:
 
 ```python
-model.Proto().solution_hint.vars.append(var_index)
-model.Proto().solution_hint.values.append(value)
+model.proto().solution_hint.vars.append(var_index)
+model.proto().solution_hint.values.append(value)
 ```
 
 Or clear and re-set them between solves:
 
 ```python
-model.ClearHints()
+model.clear_hints()
 add_hints(model, previous_solution)
 ```
 
@@ -51,12 +51,12 @@ as hints to the next. Example: `example_32_solving_by_phases.py`.
 ## Reading back values
 
 ```python
-status = solver.Solve(model)
+status = solver.solve(model)
 if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-    print(solver.Value(var))
-    print(solver.ObjectiveValue())
+    print(solver.value(var))
+    print(solver.objective_value())
 ```
 
 `MODEL_INVALID` almost always means a constraint references a variable that
-was never bound to the right model instance, or an `OnlyEnforceIf` was
+was never bound to the right model instance, or an `only_enforce_if` was
 attached to something that is not a literal.

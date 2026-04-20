@@ -136,7 +136,7 @@ def run(
     # add_search_strategy(model=model, opt_vars=opt_vars)  # TODO: Define the best search strategy
 
     # Solve model
-    status = solver.Solve(
+    status = solver.solve(
         model=model, solution_callback=cp_model.ObjectiveSolutionPrinter()
     )
     # solver_summary = get_dict_from_txt(solver.ResponseStats())  # TODO: How to implement solver into results
@@ -165,7 +165,7 @@ def extract_solution(solver: cp_model.CpSolver, variables: Variables) -> Variabl
                 solution,
                 varname,
                 {
-                    k: solver.Value(v) if type(v) not in [cp_model.IntervalVar] else v
+                    k: solver.value(v) if type(v) not in [cp_model.IntervalVar] else v
                     for k, v in vardict.items()
                 },
             )
@@ -203,7 +203,7 @@ def get_campaign_info(model_input, solver, opt_vars):
     task_to_campaign = {
         t: c
         for t, c in opt_vars["tc_presences"]
-        if solver.Value(opt_vars["tc_presences"][t, c])
+        if solver.value(opt_vars["tc_presences"][t, c])
     }
     campaigns = set(task_to_campaign.values())
     campaign_to_tasks = {
@@ -213,21 +213,21 @@ def get_campaign_info(model_input, solver, opt_vars):
 
     # 3. Get campaign values
     campaign_presences = {
-        c: solver.Value(opt_vars["c_presences"][c])
+        c: solver.value(opt_vars["c_presences"][c])
         for c in opt_vars["c_presences"]
     }
     campaign_starts = {
-        c: solver.Value(opt_vars["c_starts"][c])
+        c: solver.value(opt_vars["c_starts"][c])
         for c in opt_vars["c_starts"]
         if campaign_presences[c]
     }
     campaign_ends = {
-        c: solver.Value(opt_vars["c_ends"][c])
+        c: solver.value(opt_vars["c_ends"][c])
         for c in opt_vars["c_ends"]
         if campaign_presences[c]
     }
     campaign_duration = {
-        c: solver.Value(opt_vars["c_durations"][c])
+        c: solver.value(opt_vars["c_durations"][c])
         for c in opt_vars["c_durations"]
         if campaign_presences[c]
     }
@@ -246,14 +246,14 @@ def get_campaign_info(model_input, solver, opt_vars):
 def add_search_strategy(model, opt_vars: Dict[str, Dict]):
     """Function to fine-tune the search strategy"""
     task_start_vars = opt_vars["task_start_vars"]
-    model.AddDecisionStrategy(
+    model.add_decision_strategy(
         [task_start_vars[k] for k in task_start_vars],
         cp_model.CHOOSE_MIN_DOMAIN_SIZE,
         cp_model.SELECT_MIN_VALUE,
     )
 
     task_end_vars = opt_vars["task_end_vars"]
-    model.AddDecisionStrategy(
+    model.add_decision_strategy(
         [task_end_vars[k] for k in task_end_vars],
         cp_model.CHOOSE_MIN_DOMAIN_SIZE,
         cp_model.SELECT_MIN_VALUE,
@@ -349,12 +349,12 @@ def add_campaign_length_constraints(
     # 2. Create constraints
     for c in campaigns:
         #  1. Campaign size
-        model.Add(
+        model.add(
             sum(tc_presences[t, c] for t in campaign_to_tasks[c]) <= campaign_size[c]
         )
         # 2. Campaign duration
-        model.Add(c_durations[c] <= campaign_duration[c]
-                  ).OnlyEnforceIf(c_presences[c])
+        model.add(c_durations[c] <= campaign_duration[c]
+                  ).only_enforce_if(c_presences[c])
 
 
 @log_function
@@ -377,21 +377,21 @@ def add_campaign_circuit_constraints(
             mc1 = machine + "_" + campaign_1
             # Initial arc from the dummy node (0) to a task.
             arcs.append(
-                [0, node_1 + 1, model.NewBoolVar("first" + "_" + mc1)]
+                [0, node_1 + 1, model.new_bool_var("first" + "_" + mc1)]
             )  # if mc1 follows dummy node 0
             # Final arc from an arc to the dummy node (0).
             arcs.append(
-                [node_1 + 1, 0, model.NewBoolVar("last" + "_" + mc1)]
+                [node_1 + 1, 0, model.new_bool_var("last" + "_" + mc1)]
             )  # if dummy node 0 follows mc1
 
             # For optional campaigns on machine
-            arcs.append([node_1 + 1, node_1 + 1, c_presences[campaign_1].Not()])
+            arcs.append([node_1 + 1, node_1 + 1, ~c_presences[campaign_1]])
 
             for node_2, campaign_2 in enumerate(campaigns):
                 if node_1 == node_2:
                     continue
                 mc2 = machine + "_" + campaign_2
-                mc2_after_mc1 = model.NewBoolVar(
+                mc2_after_mc1 = model.new_bool_var(
                     f"{mc2} follows {mc1}"
                 )  # bool: mc2 follows mc1
                 arcs.append([node_1 + 1, node_2 + 1, mc2_after_mc1])
@@ -403,17 +403,17 @@ def add_campaign_circuit_constraints(
                     to_campaign=campaign_2,
                 )
 
-                model.Add(
+                model.add(
                     c_starts[campaign_2] >= c_ends[campaign_1] + min_distance
-                ).OnlyEnforceIf(
+                ).only_enforce_if(
                     mc2_after_mc1
-                ).OnlyEnforceIf(
+                ).only_enforce_if(
                     c_presences[campaign_1]
-                ).OnlyEnforceIf(
+                ).only_enforce_if(
                     c_presences[campaign_2]
                 )
         # Constraint to find 1 feasible circuit for each node of the arcs
-        model.AddCircuit(arcs)
+        model.add_circuit(arcs)
 
 
 def distance_between_campaigns(dummy_data, from_campaign, to_campaign):
@@ -463,7 +463,7 @@ def add_campaign_definition_constraints(
     # 1. Campaign definition: Start & duration based on tasks that belongs to the campaign
     for c in campaigns:
         #  1. Duration definition
-        model.Add(
+        model.add(
             c_durations[c]
             == sum(
                 processing_times[t, c2m[c]] * tc_presences[t, c]
@@ -473,14 +473,14 @@ def add_campaign_definition_constraints(
         # 2. Start-end definition
         # TODO: MinEquality ?
         for t in campaign_to_tasks[c]:
-            model.Add(c_starts[c] <= machine_task_start_vars[c2m[c], t]).OnlyEnforceIf(
+            model.add(c_starts[c] <= machine_task_start_vars[c2m[c], t]).only_enforce_if(
                 tc_presences[t, c]
             )
-            model.Add(c_ends[c] >= machine_task_end_vars[c2m[c], t]).OnlyEnforceIf(
+            model.add(c_ends[c] >= machine_task_end_vars[c2m[c], t]).only_enforce_if(
                 tc_presences[t, c]
             )
         # 3. Link c & tc presence: If 1 task is scheduled on a campaign -> presence[t, c] = 1 ==> presence[c] == 1
-        model.AddMaxEquality(
+        model.add_max_equality(
             c_presences[c], [tc_presences[t, c] for t in campaign_to_tasks[c]]
         )
 
@@ -488,13 +488,13 @@ def add_campaign_definition_constraints(
     for m in machines:
         # 1. One task belongs to at most 1 campaign
         for t in machines_to_tasks[m]:
-            model.Add(
+            model.add(
                 machine_task_presence_vars[m, t]
                 == sum(tc_presences[t, c] for c in m2c[m] if c in t2c[t])
             )
         # 2. No campaign overlap
         campaign_intervals = [c_intervals[c] for c in m2c[m]]
-        model.AddNoOverlap(campaign_intervals)
+        model.add_no_overlap(campaign_intervals)
 
 
 @log_function
@@ -610,19 +610,19 @@ def update_campaign_variables(
     # 2. Create variables
     # 2.1 Campaign vars
     variables.campaign_starts = {
-        c: model.NewIntVar(0, max_domain_time, f"start_{c}") for c in campaigns
+        c: model.new_int_var(0, max_domain_time, f"start_{c}") for c in campaigns
     }
     variables.campaign_durations = {
-        c: model.NewIntVar(0, max_domain_time, f"c_duration_{c}") for c in campaigns
+        c: model.new_int_var(0, max_domain_time, f"c_duration_{c}") for c in campaigns
     }
     variables.campaign_ends = {
-        c: model.NewIntVar(0, max_domain_time, f"mc_end_{c}") for c in campaigns
+        c: model.new_int_var(0, max_domain_time, f"mc_end_{c}") for c in campaigns
     }
     variables.campaign_presences = {
-        c: model.NewBoolVar(f"c_presence_{c}") for c in campaigns
+        c: model.new_bool_var(f"c_presence_{c}") for c in campaigns
     }
     variables.campaign_intervals = {
-        c: model.NewOptionalIntervalVar(
+        c: model.new_optional_interval_var(
             variables.campaign_starts[c],  # campaign start
             variables.campaign_durations[c],  # campaign duration
             variables.campaign_ends[c],  # campaign end
@@ -633,7 +633,7 @@ def update_campaign_variables(
     }
     # 2.2 Define task-campaign bool
     variables.tc_presences = {
-        (t, c): model.NewBoolVar(f"tc_presence_{t}_{c}") for t in tasks for c in t2c[t]
+        (t, c): model.new_bool_var(f"tc_presence_{t}_{c}") for t in tasks for c in t2c[t]
     }
 
 
@@ -687,18 +687,18 @@ def add_inventory_constraints(
     rank_end_time = {}
     waste_produced_vars = {}
     for rank in list_ranks:
-        reservoir_vars[rank] = model.NewIntVar(0, 40, f"Reservoir_rank_{rank}")
-        rank_end_time[rank] = model.NewIntVar(0, 10000, f"rank_end_time_{rank}")
-        waste_produced_vars[rank] = model.NewIntVar(0, 10000, f"waste_produced_{rank}")
+        reservoir_vars[rank] = model.new_int_var(0, 40, f"Reservoir_rank_{rank}")
+        rank_end_time[rank] = model.new_int_var(0, 10000, f"rank_end_time_{rank}")
+        waste_produced_vars[rank] = model.new_int_var(0, 10000, f"waste_produced_{rank}")
     # 1.2: Task-level variable: For each task, need to define its rank
     task_rank_vars = {}
     for task in tasks:
-        task_rank_vars[task] = model.NewIntVar(0, len(tasks) - 1, f"task_rank_{task}")
+        task_rank_vars[task] = model.new_int_var(0, len(tasks) - 1, f"task_rank_{task}")
     # 1.3: task x Rank
     same_task_rank_vars = {}
     for rank in list_ranks:
         for task in tasks:
-            same_task_rank_vars[task, rank] = model.NewBoolVar(
+            same_task_rank_vars[task, rank] = model.new_bool_var(
                 f"same_rank_{task}_{rank}"
             )
 
@@ -707,31 +707,31 @@ def add_inventory_constraints(
     model.AddAllDifferent([task_rank_vars[task] for task in task_rank_vars])
     # for task in tasks:
     #     # Each task should be associated to exactly 1 rank [Optional]
-    #     model.AddExactlyOne([same_task_rank_vars[task, rank] for rank in list_ranks])
+    #     model.add_exactly_one([same_task_rank_vars[task, rank] for rank in list_ranks])
     for rank in list_ranks:
         # Each rank should be associated to exactly 1 task
-        model.AddExactlyOne([same_task_rank_vars[task, rank] for task in tasks])
+        model.add_exactly_one([same_task_rank_vars[task, rank] for task in tasks])
         # Rank definition
         for task in tasks:
             # Task-rank definition & implication
-            model.Add(task_rank_vars[task] == rank).OnlyEnforceIf(
+            model.add(task_rank_vars[task] == rank).only_enforce_if(
                 same_task_rank_vars[task, rank]
             )
-            model.Add(rank_end_time[rank] == task_end_vars[task]).OnlyEnforceIf(
+            model.add(rank_end_time[rank] == task_end_vars[task]).only_enforce_if(
                 same_task_rank_vars[task, rank]
             )
             # Waste quantity
-            model.Add(waste_produced_vars[rank] == waste_quantity[task]).OnlyEnforceIf(
+            model.add(waste_produced_vars[rank] == waste_quantity[task]).only_enforce_if(
                 same_task_rank_vars[task, rank]
             )
 
         if rank > 0:
-            model.Add(rank_end_time[rank] >= rank_end_time[rank - 1])
+            model.add(rank_end_time[rank] >= rank_end_time[rank - 1])
         # Balance constraints
         if rank == 0:
-            initial_balance = model.NewConstant(30)
+            initial_balance = model.new_constant(30)
             #  (end_time[task_rank] - end_time[task_rank -1) x release speed
-            model.Add(
+            model.add(
                 reservoir_vars[rank]
                 >= (
                     initial_balance
@@ -740,7 +740,7 @@ def add_inventory_constraints(
                 )
             )
         if rank > 0:
-            model.Add(
+            model.add(
                 reservoir_vars[rank]
                 >= (
                     reservoir_vars[rank - 1]
@@ -767,7 +767,7 @@ def add_job_completion_constraints(
     for job in jobs:
         job_completion = job_completions[job]
         job_tasks_presence = [task_presences[task] for task in jobs_to_tasks[job]]
-        model.AddMinEquality(job_completion, job_tasks_presence)
+        model.add_min_equality(job_completion, job_tasks_presence)
 
 
 @log_function
@@ -789,22 +789,22 @@ def add_flexible_machine_task_selection_constraints(
         # 2. Link candidates machine-tasks to the task
         # Candidates tasks represent the choices to schedule a task across different machines
         # Task is present if the task has been scheduled on 1 machine
-        model.AddMaxEquality(variables.task_presences[task], task_candidate_machines)
+        model.add_max_equality(variables.task_presences[task], task_candidate_machines)
         for machine in candidate_machines:
             # Link the task interval with the task x machine interval if the latter is chosen (presence = True)
-            model.Add(
+            model.add(
                 variables.task_starts[task]
                 == variables.machine_task_starts[machine, task]
-            ).OnlyEnforceIf(variables.machine_task_presences[machine, task])
-            model.Add(
+            ).only_enforce_if(variables.machine_task_presences[machine, task])
+            model.add(
                 variables.task_ends[task] == variables.machine_task_ends[machine, task]
-            ).OnlyEnforceIf(variables.machine_task_presences[machine, task])
+            ).only_enforce_if(variables.machine_task_presences[machine, task])
 
         # Select exactly one presence variable only if not optional jobs
         if OPTIONAL_JOBS:
-            model.AddAtMostOne(task_candidate_machines)
+            model.add_at_most_one(task_candidate_machines)
         else:
-            model.AddExactlyOne(task_candidate_machines)
+            model.add_exactly_one(task_candidate_machines)
 
 
 @log_function
@@ -848,30 +848,30 @@ def add_resources_constraints_with_decomposition(
                 task_resource_required = 1
                 # Task starts before time unit t
                 # b1: start[task] < t
-                b1 = model.NewBoolVar(f"{task}_{shift}_{t}")
-                model.Add(start[task] <= t).OnlyEnforceIf(b1)
-                model.Add(start[task] > t).OnlyEnforceIf(b1.Not())
+                b1 = model.new_bool_var(f"{task}_{shift}_{t}")
+                model.add(start[task] <= t).only_enforce_if(b1)
+                model.add(start[task] > t).only_enforce_if(~b1)
 
                 # Task ends after time unit t
                 # b2 = t < end[task]
-                b2 = model.NewBoolVar(f"{task}_{shift}_{t}")
-                model.Add(t < end[task]).OnlyEnforceIf(b2)
-                model.Add(t >= end[task]).OnlyEnforceIf(b2.Not())
+                b2 = model.new_bool_var(f"{task}_{shift}_{t}")
+                model.add(t < end[task]).only_enforce_if(b2)
+                model.add(t >= end[task]).only_enforce_if(~b2)
 
                 # Task overlaps with time unit (start < t < end)
                 # b3 = b1 and b2 (b1 * b2)
-                b3 = model.NewBoolVar(f"{task}_{shift}_{t}")
-                model.AddBoolAnd([b1, b2]).OnlyEnforceIf(b3)
-                model.AddBoolOr([b1.Not(), b2.Not()]).OnlyEnforceIf(b3.Not())
+                b3 = model.new_bool_var(f"{task}_{shift}_{t}")
+                model.add_bool_and([b1, b2]).only_enforce_if(b3)
+                model.add_bool_or([~b1, ~b2]).only_enforce_if(~b3)
 
                 # Task resources requirement: if overlap & resources required > 0
                 # b4 = b1 * b2 * r[i]
-                b4 = model.NewIntVar(
+                b4 = model.new_int_var(
                     0, max_resources, f"task_resource_requirement_{task}_{t}"
                 )
-                model.AddMultiplicationEquality(b4, [b3, task_resource_required])
+                model.add_multiplication_equality(b4, [b3, task_resource_required])
                 bb.append(b4)
-            model.Add(sum(bb) <= max_resources)
+            model.add(sum(bb) <= max_resources)
 
 
 @log_function
@@ -882,7 +882,7 @@ def add_resources_constraints_with_cumulative(
     Add limited resources constraints.
     This constraint make sure that the intervals are allocated up to the resource capacity.
 
-    In this specific use-case, the resource is constant and we leverage the built-in method AddCumulative.
+    In this specific use-case, the resource is constant and we leverage the built-in method add_cumulative.
 
     Cumulative constraint is as follows:
      for all t:
@@ -908,7 +908,7 @@ def add_resources_constraints_with_cumulative(
     for shift in shifts:
         frozen_resource = resource_available - shift_resources[shift]
         if frozen_resource > 0:
-            frozen_interval = model.NewFixedSizeIntervalVar(
+            frozen_interval = model.new_fixed_size_interval_var(
                 start=shift_start[shift],
                 size=shift_end[shift] - shift_start[shift],
                 name=f"frozen_resources_{shift}",
@@ -917,7 +917,7 @@ def add_resources_constraints_with_cumulative(
             resource_demand.append(frozen_resource)
 
     # Create cumulative constraints
-    model.AddCumulative(intervals, resource_demand, resource_available)
+    model.add_cumulative(intervals, resource_demand, resource_available)
 
 
 @log_function
@@ -925,7 +925,7 @@ def add_no_machine_overlap_constraints(
     model: cp_model.CpModel, model_input: OptInput, variables: Variables
 ):
     """Overlap constraint is defined over the interval variables.
-    model.AddNoOverlap takes a list of intervals as an input and make sure that 2 variables
+    model.add_no_overlap takes a list of intervals as an input and make sure that 2 variables
     do not overlap one with another.
     """
     # Load variables
@@ -938,7 +938,7 @@ def add_no_machine_overlap_constraints(
             variables.machine_task_intervals[machine, task]
             for task in machines_to_tasks[machine]
         ]
-        model.AddNoOverlap(intervals)
+        model.add_no_overlap(intervals)
 
 
 def add_task_precedence_constraints(
@@ -949,12 +949,12 @@ def add_task_precedence_constraints(
 
     for task_before, task_after in precedence:
         # Task-precedence presence: task_before not present => task_after not present
-        model.AddImplication(
-            variables.task_presences[task_before].Not(),
-            variables.task_presences[task_after].Not(),
+        model.add_implication(
+            variables.~task_presences[task_before],
+            variables.~task_presences[task_after],
         )
         # Task-precedence time: start[task_after] >= end[task_before]
-        model.Add(variables.task_starts[task_after] >= variables.task_ends[task_before])
+        model.add(variables.task_starts[task_after] >= variables.task_ends[task_before])
 
 
 @log_function
@@ -971,11 +971,11 @@ def add_tardiness_definition_constraints(
 
     for job in jobs:
         # 1. Define job start/end time
-        model.AddMaxEquality(
+        model.add_max_equality(
             variables.job_ends[job],
             [variables.task_ends[task] for task in jobs_to_tasks[job]],
         )
-        model.AddMaxEquality(
+        model.add_max_equality(
             variables.job_starts[job],
             [variables.task_starts[task] for task in jobs_to_tasks[job]],
         )
@@ -994,10 +994,10 @@ def add_tardiness_definition_constraints(
         )
         # 2.2 Estimate job penalty only if job is not completed
         job_end_ub = (
-            variables.job_ends[job].Proto().domain[1]
+            variables.job_ends[job].proto().domain[1]
         )  # upper bound for job_end
-        job_penalty = model.NewIntVar(0, job_end_ub * 10, f"job_penalty_{job}")
-        model.Add(
+        job_penalty = model.new_int_var(0, job_end_ub * 10, f"job_penalty_{job}")
+        model.add(
             job_penalty
             >= (
                 job_end_ub
@@ -1006,9 +1006,9 @@ def add_tardiness_definition_constraints(
                     variables.job_ends[job] - variables.job_starts[job]
                 )  # actual job duration
             )
-        ).OnlyEnforceIf(variables.job_completions[job].Not())
+        ).only_enforce_if(variables.~job_completions[job])
         # 3. Define job tardiness
-        model.AddMaxEquality(
+        model.add_max_equality(
             variables.job_tardiness[job],
             [0, variables.job_ends[job] - due_dates[job], job_penalty],
         )
@@ -1055,11 +1055,11 @@ def add_sequence_setup_constraints(
             mt_1 = task_1 + "_" + machine
             # Initial arc from the dummy node (0) to a task.
             arcs.append(
-                [0, node_1 + 1, model.NewBoolVar("first" + "_" + mt_1)]
+                [0, node_1 + 1, model.new_bool_var("first" + "_" + mt_1)]
             )  # if mt_1 follows dummy node 0
             # Final arc from an arc to the dummy node (0).
             arcs.append(
-                [node_1 + 1, 0, model.NewBoolVar("last" + "_" + mt_1)]
+                [node_1 + 1, 0, model.new_bool_var("last" + "_" + mt_1)]
             )  # if dummy node 0 follows mt_1
 
             # For optional task on machine (i.e other machine choice)
@@ -1068,7 +1068,7 @@ def add_sequence_setup_constraints(
                 [
                     node_1 + 1,
                     node_1 + 1,
-                    machine_task_presence_vars[(machine, task_1)].Not(),
+                    ~machine_task_presence_vars[(machine, task_1)],
                 ]
             )
 
@@ -1077,16 +1077,16 @@ def add_sequence_setup_constraints(
                     continue
                 mt_2 = task_2 + "_" + machine
                 # Add sequential boolean constraint: mt_2 follows mt_1
-                mt2_after_mt1 = model.NewBoolVar(f"{mt_2} follows {mt_1}")
+                mt2_after_mt1 = model.new_bool_var(f"{mt_2} follows {mt_1}")
                 arcs.append([node_1 + 1, node_2 + 1, mt2_after_mt1])
 
                 # We add the reified precedence to link the literal with the
                 # times of the two tasks.
                 min_distance = distance_between_jobs(from_task=mt_1, to_task=mt_2)
                 (
-                    model.Add(
+                    model.add(
                         task_start_vars[task_2] >= task_end_vars[task_1] + min_distance
-                    ).OnlyEnforceIf(mt2_after_mt1)
+                    ).only_enforce_if(mt2_after_mt1)
                 )
 
         # Constraint to find 1 feasible circuit for each node of the arcs
@@ -1095,7 +1095,7 @@ def add_sequence_setup_constraints(
         #  2. arc(task_2, task_3) = 1 --> start[task_3] >= end[task_2] + setup
         #  3. arc(task_3, 0) = 1
         # Since task 1 is not planned on this machine: arc(task_1, task_1) = 1
-        model.AddCircuit(arcs)
+        model.add_circuit(arcs)
 
 
 def distance_between_jobs(from_task, to_task):
@@ -1122,13 +1122,13 @@ def add_objective(
 
     # Tardiness definition
     tardiness = sum([variables.job_tardiness[job] for job in model_input.sets.jobs])
-    model.Minimize(tardiness)
+    model.minimize(tardiness)
 
     # # Make-span definition
     # task_ends = variables.task_ends
-    # make_span = model.NewIntVar(0, max_domain_time, 'make_span')
-    # model.AddMaxEquality(make_span, [task_ends[task] for task in task_ends])
-    # model.Minimize(make_span)
+    # make_span = model.new_int_var(0, max_domain_time, 'make_span')
+    # model.add_max_equality(make_span, [task_ends[task] for task in task_ends])
+    # model.minimize(make_span)
 
 
 @log_function
@@ -1157,29 +1157,29 @@ def create_variables(
     # Create core variables
     # 1. Job variables
     variables.job_completions = {
-        job: model.NewBoolVar(f"job_completed_{job}") for job in jobs
+        job: model.new_bool_var(f"job_completed_{job}") for job in jobs
     }
     variables.job_ends = {
-        job: model.NewIntVar(0, max_domain_time, "job_end" + job) for job in jobs
+        job: model.new_int_var(0, max_domain_time, "job_end" + job) for job in jobs
     }
     variables.job_starts = {
-        job: model.NewIntVar(0, max_domain_time, "job_start" + job) for job in jobs
+        job: model.new_int_var(0, max_domain_time, "job_start" + job) for job in jobs
     }
     variables.job_tardiness = {
-        job: model.NewIntVar(0, max_domain_time * 10, "tardiness" + job) for job in jobs
+        job: model.new_int_var(0, max_domain_time * 10, "tardiness" + job) for job in jobs
     }
     # 2. Task variables
     variables.task_starts = {
-        task: model.NewIntVar(0, max_domain_time, "start" + task) for task in tasks
+        task: model.new_int_var(0, max_domain_time, "start" + task) for task in tasks
     }
     variables.task_ends = {
-        task: model.NewIntVar(0, max_domain_time, "end" + task) for task in tasks
+        task: model.new_int_var(0, max_domain_time, "end" + task) for task in tasks
     }
     variables.task_presences = {
-        task: model.NewBoolVar("presence" + task) for task in tasks
+        task: model.new_bool_var("presence" + task) for task in tasks
     }
     variables.task_durations = {
-        task: model.NewIntVar(
+        task: model.new_int_var(
             min(
                 processing_times[task, machine] for machine in tasks_to_machines[task]
             ),  # min_duration
@@ -1192,22 +1192,22 @@ def create_variables(
     }
     # 3. task x machine variables
     variables.machine_task_starts = {
-        (m, t): model.NewIntVar(0, max_domain_time, "start" + m + t)
+        (m, t): model.new_int_var(0, max_domain_time, "start" + m + t)
         for t in tasks
         for m in tasks_to_machines[t]
     }
     variables.machine_task_ends = {
-        (m, t): model.NewIntVar(0, max_domain_time, "end" + m + t)
+        (m, t): model.new_int_var(0, max_domain_time, "end" + m + t)
         for t in tasks
         for m in tasks_to_machines[t]
     }
     variables.machine_task_presences = {
-        (m, t): model.NewBoolVar("presence" + m + t)
+        (m, t): model.new_bool_var("presence" + m + t)
         for t in tasks
         for m in tasks_to_machines[t]
     }
     variables.machine_task_intervals = {
-        (m, t): model.NewOptionalIntervalVar(
+        (m, t): model.new_optional_interval_var(
             variables.machine_task_starts[m, t],  # start of machine_task
             processing_times[t, m],  # Fixed duration of machine_task
             variables.machine_task_ends[m, t],  # end of machine_task

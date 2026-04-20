@@ -170,7 +170,7 @@ def run(
     else:
         callback = CPCallback()
 
-    status = solver.Solve(model=model, solution_callback=callback)
+    status = solver.solve(model=model, solution_callback=callback)
     status_decode = get_cp_model_status_name(status)
     logger.info(f"Model returned the status: '{status_decode}'")
 
@@ -295,18 +295,18 @@ def add_flexible_machine_task_selection_constraints(
             variables.machine_task_presences[machine, task]
             for machine in candidate_machines
         ]
-        model.AddExactlyOne(task_candidate_machines)
+        model.add_exactly_one(task_candidate_machines)
         # 2. Link candidates machine-tasks to the task
         # Candidate tasks represent the choice of machine for tasks
         for machine in candidate_machines:
             # Link the task interval with the task x machine interval, if chosen
-            model.Add(
+            model.add(
                 variables.task_starts[task]
                 == variables.machine_task_starts[machine, task]
-            ).OnlyEnforceIf(variables.machine_task_presences[machine, task])
-            model.Add(
+            ).only_enforce_if(variables.machine_task_presences[machine, task])
+            model.add(
                 variables.task_ends[task] == variables.machine_task_ends[machine, task]
-            ).OnlyEnforceIf(variables.machine_task_presences[machine, task])
+            ).only_enforce_if(variables.machine_task_presences[machine, task])
 
 
 @log_function
@@ -318,7 +318,7 @@ def add_resources_constraints_with_cumulative(
     are allocated up to the resource capacity.
 
     In this specific use-case, the resource is constant and we leverage the built-in
-    method AddCumulative.
+    method add_cumulative.
 
     Cumulative constraint is as follows:
      for all t:
@@ -349,7 +349,7 @@ def add_resources_constraints_with_cumulative(
                 intervals.append(interval)
                 demands.append(resources_req[task, resource])
         # 2.3 Create cumulative constraints
-        model.AddCumulative(intervals, demands, resource_available_ub)
+        model.add_cumulative(intervals, demands, resource_available_ub)
 
 
 @log_function
@@ -357,7 +357,7 @@ def add_no_machine_overlap_constraints(
     model: cp_model.CpModel, model_input: OptInput, variables: Variables
 ):
     """
-    Overlap constraint is defined over the interval variables. model.AddNoOverlap
+    Overlap constraint is defined over the interval variables. model.add_no_overlap
     takes a list of intervals as an input and make sure that 2 variables do not
     overlap one with another
     Args:
@@ -376,7 +376,7 @@ def add_no_machine_overlap_constraints(
             variables.machine_task_intervals[machine, task]
             for task in machines_to_tasks[machine]
         ]
-        model.AddNoOverlap(intervals)
+        model.add_no_overlap(intervals)
 
 
 def add_task_precedence_constraints(
@@ -396,7 +396,7 @@ def add_task_precedence_constraints(
 
     for task_before, task_after in precedence:
         # Task-precedence time: start[task_after] >= end[task_before]
-        model.Add(variables.task_starts[task_after] >= variables.task_ends[task_before])
+        model.add(variables.task_starts[task_after] >= variables.task_ends[task_before])
 
 
 @log_function
@@ -422,12 +422,12 @@ def add_tardiness_definition_constraints(
 
     for job in jobs:
         # 1. Define job start/end time
-        model.AddMaxEquality(
+        model.add_max_equality(
             variables.job_ends[job],
             [variables.task_ends[task] for task in jobs_to_tasks[job]],
         )
         # 2. Define job tardiness
-        model.AddMaxEquality(
+        model.add_max_equality(
             variables.job_tardiness[job],
             [0, variables.job_ends[job] - due_dates[job]],
         )
@@ -496,11 +496,11 @@ def add_sequence_setup_constraints(
             mt_1 = task_1 + "_" + machine
             # Initial arc from the dummy node (0) to a task.
             arcs.append(
-                [0, node_1 + 1, model.NewBoolVar("first" + "_" + mt_1)]
+                [0, node_1 + 1, model.new_bool_var("first" + "_" + mt_1)]
             )  # if mt_1 follows dummy node 0
             # Final arc from an arc to the dummy node (0).
             arcs.append(
-                [node_1 + 1, 0, model.NewBoolVar("last" + "_" + mt_1)]
+                [node_1 + 1, 0, model.new_bool_var("last" + "_" + mt_1)]
             )  # if dummy node 0 follows mt_1
 
             # For optional task on machine (i.e other machine choice)
@@ -509,7 +509,7 @@ def add_sequence_setup_constraints(
                 [
                     node_1 + 1,
                     node_1 + 1,
-                    variables.machine_task_presences[(machine, task_1)].Not(),
+                    variables.~machine_task_presences[(machine, task_1)],
                 ]
             )
 
@@ -527,10 +527,10 @@ def add_sequence_setup_constraints(
                         task_1, task_2, machine
                     )
                     (
-                        model.Add(
+                        model.add(
                             variables.task_starts[task_2]
                             >= variables.task_ends[task_1] + min_distance
-                        ).OnlyEnforceIf(mt2_after_mt1)
+                        ).only_enforce_if(mt2_after_mt1)
                     )
 
         # Constraint to find 1 feasible circuit for each node of the arcs
@@ -539,7 +539,7 @@ def add_sequence_setup_constraints(
         #  2. arc(task_2, task_3) = 1 --> start[task_3] >= end[task_2] + setup
         #  3. arc(task_3, 0) = 1
         # Since task 1 is not planned on this machine: arc(task_1, task_1) = 1
-        model.AddCircuit(arcs)
+        model.add_circuit(arcs)
 
 
 @log_function
@@ -581,8 +581,8 @@ def add_objective(
 
     if weights[0] > 0:
         logger.info(f"Adding objective 'makespan' with weight {weights[0]}")
-        make_span = model.NewIntVar(0, max_domain_time, "make_span")
-        model.AddMaxEquality(
+        make_span = model.new_int_var(0, max_domain_time, "make_span")
+        model.add_max_equality(
             make_span, [variables.task_ends[task] for task in variables.task_ends]
         )
         objective += weights[0] * make_span
@@ -602,7 +602,7 @@ def add_objective(
 
     if isinstance(objective, int) and objective == 0:
         logger.warning("Asking to solve with a zero objective")
-    model.Minimize(objective)
+    model.minimize(objective)
 
 
 @log_function
@@ -635,21 +635,21 @@ def create_variables(
     # Create core variables
     # 1. Job variables
     variables.job_ends = {
-        job: model.NewIntVar(0, max_domain_time, f"job_end_{job}") for job in jobs
+        job: model.new_int_var(0, max_domain_time, f"job_end_{job}") for job in jobs
     }
     if ScheduleModelFeatures.due_dates in model_input.features:
         variables.job_tardiness = {
-            job: model.NewIntVar(0, max_domain_time, f"tardiness_{job}") for job in jobs
+            job: model.new_int_var(0, max_domain_time, f"tardiness_{job}") for job in jobs
         }
     # 2. Task variables
     variables.task_starts = {
-        task: model.NewIntVar(0, max_domain_time, f"start_{task}") for task in tasks
+        task: model.new_int_var(0, max_domain_time, f"start_{task}") for task in tasks
     }
     variables.task_ends = {
-        task: model.NewIntVar(0, max_domain_time, f"end_{task}") for task in tasks
+        task: model.new_int_var(0, max_domain_time, f"end_{task}") for task in tasks
     }
     variables.task_durations = {
-        task: model.NewIntVar(
+        task: model.new_int_var(
             min(
                 processing_times[task, machine] for machine in tasks_to_machines[task]
             ),  # min_duration
@@ -662,22 +662,22 @@ def create_variables(
     }
     # 3. task x machine variables
     variables.machine_task_starts = {
-        (m, t): model.NewIntVar(0, max_domain_time, f"start_{m}_{t}")
+        (m, t): model.new_int_var(0, max_domain_time, f"start_{m}_{t}")
         for t in tasks
         for m in tasks_to_machines[t]
     }
     variables.machine_task_ends = {
-        (m, t): model.NewIntVar(0, max_domain_time, f"end_{m}_{t}")
+        (m, t): model.new_int_var(0, max_domain_time, f"end_{m}_{t}")
         for t in tasks
         for m in tasks_to_machines[t]
     }
     variables.machine_task_presences = {
-        (m, t): model.NewBoolVar(f"presence_{m}_{t}")
+        (m, t): model.new_bool_var(f"presence_{m}_{t}")
         for t in tasks
         for m in tasks_to_machines[t]
     }
     variables.machine_task_intervals = {
-        (m, t): model.NewOptionalIntervalVar(
+        (m, t): model.new_optional_interval_var(
             variables.machine_task_starts[m, t],  # start of machine_task
             processing_times[t, m],  # Fixed duration of machine_task
             variables.machine_task_ends[m, t],  # end of machine_task
@@ -698,7 +698,7 @@ def create_variables(
         if t1 != t2
     }
     variables.machine_direct_precedence = {
-        (m, t1, t2): model.NewBoolVar(f"{t2} follows {t1} on {m}")
+        (m, t1, t2): model.new_bool_var(f"{t2} follows {t1} on {m}")
         for (m, t1, t2) in m_t1_t2
     }
 
@@ -736,7 +736,7 @@ def extract_solution(solver: cp_model.CpSolver, variables):
                 solution,
                 varname,
                 {
-                    k: solver.Value(v) if type(v) not in [cp_model.IntervalVar] else v
+                    k: solver.value(v) if type(v) not in [cp_model.IntervalVar] else v
                     for k, v in vardict.items()
                 },
             )
@@ -757,7 +757,7 @@ class CPCallback(cp_model.CpSolverSolutionCallback):
     def on_solution_callback(self):
         """Called on each new solution."""
         current_time = time.time()
-        obj = self.ObjectiveValue()
+        obj = self.objective_value()
         logger.debug(
             "Solution %i, time = %0.2f s, objective = %i"
             % (self.__solution_count, current_time - self.__start_time, obj)

@@ -10,7 +10,7 @@ appear in the schedule itself, only the cost minimised.
 
 ```python
 total_co = sum(seq[t1, t2] * changeover_cost[t1, t2] for ...)
-model.Minimize(make_span + total_co)
+model.minimize(make_span + total_co)
 ```
 
 Simple, but time and cost are decoupled: the schedule may not leave physical
@@ -24,7 +24,7 @@ Include the changeover in the gap between tasks:
 
 ```python
 gap = changeover_time if products_differ(t1, t2) else 0
-model.Add(end[t1] + gap <= start[t2]).OnlyEnforceIf(seq[t1, t2])
+model.add(end[t1] + gap <= start[t2]).only_enforce_if(seq[t1, t2])
 ```
 
 Now time and cost agree: a changeover actually pushes the next task later.
@@ -38,13 +38,13 @@ changeover itself. When `t1 -> t2` is chosen, the interval is present, sits
 between the two tasks, and has the right duration.
 
 ```python
-co_iv = model.NewOptionalIntervalVar(co_start, co_duration, co_end, co_present, ...)
-model.Add(end[t1] <= co_start).OnlyEnforceIf(seq[t1, t2])
-model.Add(co_end <= start[t2]).OnlyEnforceIf(seq[t1, t2])
-model.Add(co_present == 1).OnlyEnforceIf(seq[t1, t2])
+co_iv = model.new_optional_interval_var(co_start, co_duration, co_end, co_present, ...)
+model.add(end[t1] <= co_start).only_enforce_if(seq[t1, t2])
+model.add(co_end <= start[t2]).only_enforce_if(seq[t1, t2])
+model.add(co_present == 1).only_enforce_if(seq[t1, t2])
 ```
 
-This lets you add the changeover interval to `AddCumulative` (it consumes
+This lets you add the changeover interval to `add_cumulative` (it consumes
 operator time) or apply cleaning-resource constraints to it.
 
 Example: `example_08_changeover_as_event.py`.

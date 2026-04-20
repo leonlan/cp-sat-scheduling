@@ -23,10 +23,10 @@ def run_model_1(number_of_tasks):
 
     model = cp_model.CpModel()
 
-    var_task_starts = {task: model.NewIntVar(0, max_time, f"task_{task}_start") for task in tasks}
-    var_task_ends = {task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks}
+    var_task_starts = {task: model.new_int_var(0, max_time, f"task_{task}_start") for task in tasks}
+    var_task_ends = {task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks}
     var_task_intervals = {
-        task: model.NewIntervalVar(
+        task: model.new_interval_var(
             var_task_starts[task],
             processing_time,
             var_task_ends[task],
@@ -36,39 +36,39 @@ def run_model_1(number_of_tasks):
     }
     for task in tasks:
         if task != 0:
-            model.Add(var_task_starts[task-1] < var_task_starts[task])
+            model.add(var_task_starts[task-1] < var_task_starts[task])
 
     var_break_intervals = {
-        break_id: model.NewFixedSizeIntervalVar(
+        break_id: model.new_fixed_size_interval_var(
             break_start, break_end-break_start, f"break_{break_id}"
         ) for break_id, (break_start, break_end) in enumerate(breaks)
     }
 
     all_intervals = [x for x in var_task_intervals.values()] + [x for x in var_break_intervals.values()]
-    model.AddNoOverlap(all_intervals)
+    model.add_no_overlap(all_intervals)
 
     # obj
-    make_span = model.NewIntVar(0, max_time, "make_span")
+    make_span = model.new_int_var(0, max_time, "make_span")
 
-    model.AddMaxEquality(
+    model.add_max_equality(
         make_span,
         [var_task_ends[task] for task in tasks]
     )
 
-    model.Minimize(make_span)
+    model.minimize(make_span)
 
     solver = cp_model.CpSolver()
     start = time()
-    status = solver.Solve(model=model)
+    status = solver.solve(model=model)
     total_time = time() - start
 
     # if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
     #     for task in tasks:
     #         print(f'Task {task} ',
-    #               solver.Value(var_task_starts[task]), solver.Value(var_task_ends[task])
+    #               solver.value(var_task_starts[task]), solver.value(var_task_ends[task])
     #               )
     #
-    #     print('Make-span:', solver.Value(make_span))
+    #     print('Make-span:', solver.value(make_span))
 
     if status == cp_model.OPTIMAL:
         return total_time
@@ -96,16 +96,16 @@ def run_model_2(number_of_tasks):
 
     model = cp_model.CpModel()
 
-    #model.NewIntVarFromDomain(cp_model.Domain.FromIntervals([[1, 2], [4, 6]]), 'x')
+    #model.new_int_varFromDomain(cp_model.Domain.from_intervals([[1, 2], [4, 6]]), 'x')
 
-    var_task_starts = {task: model.NewIntVarFromDomain(
-        cp_model.Domain.FromIntervals(valid_periods),
+    var_task_starts = {task: model.new_int_varFromDomain(
+        cp_model.Domain.from_intervals(valid_periods),
         f"task_{task}_start")
         for task in tasks}
 
-    var_task_ends = {task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks}
+    var_task_ends = {task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks}
     var_task_intervals = {
-        task: model.NewIntervalVar(
+        task: model.new_interval_var(
             var_task_starts[task],
             processing_time,
             var_task_ends[task],
@@ -115,33 +115,33 @@ def run_model_2(number_of_tasks):
     }
     for task in tasks:
         if task != 0:
-            model.Add(var_task_starts[task-1] < var_task_starts[task])
+            model.add(var_task_starts[task-1] < var_task_starts[task])
 
     all_intervals = [x for x in var_task_intervals.values()]
-    model.AddNoOverlap(all_intervals)
+    model.add_no_overlap(all_intervals)
 
     # obj
-    make_span = model.NewIntVar(0, max_time, "make_span")
+    make_span = model.new_int_var(0, max_time, "make_span")
 
-    model.AddMaxEquality(
+    model.add_max_equality(
         make_span,
         [var_task_ends[task] for task in tasks]
     )
 
-    model.Minimize(make_span)
+    model.minimize(make_span)
 
     solver = cp_model.CpSolver()
     start = time()
-    status = solver.Solve(model=model)
+    status = solver.solve(model=model)
     total_time = time() - start
 
     # if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
     #     for task in tasks:
     #         print(f'Task {task} ',
-    #               solver.Value(var_task_starts[task]), solver.Value(var_task_ends[task])
+    #               solver.value(var_task_starts[task]), solver.value(var_task_ends[task])
     #               )
     #
-    #     print('Make-span:', solver.Value(make_span))
+    #     print('Make-span:', solver.value(make_span))
 
     if status == cp_model.OPTIMAL:
         return total_time

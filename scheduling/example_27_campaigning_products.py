@@ -45,15 +45,15 @@ def run_model(number_of_products, num_of_tasks_per_product, campaign_size, print
         (t1, t2): 0 if task_to_product[t1] == task_to_product[t2] else 1 for t1 in tasks for t2 in tasks if t1 != t2
     }
 
-    var_task_starts = {task: model.NewIntVar(0, max_time, f"task_{task}_start") for task in tasks}
-    var_task_ends = {task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks}
+    var_task_starts = {task: model.new_int_var(0, max_time, f"task_{task}_start") for task in tasks}
+    var_task_ends = {task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks}
 
-    var_task_cumul = {task: model.NewIntVar(0, campaign_size-1, f"task_{task}_cumul") for task in tasks}
+    var_task_cumul = {task: model.new_int_var(0, campaign_size-1, f"task_{task}_cumul") for task in tasks}
     for product_idx, product in enumerate(range(number_of_products)):
-        model.Add(var_task_cumul[product_idx*num_of_tasks_per_product] == 0)
+        model.add(var_task_cumul[product_idx*num_of_tasks_per_product] == 0)
 
-    var_reach_campaign_end = {task: model.NewBoolVar(f"task_{task}_reach_max") for task in tasks}
-    var_product_change = {task: model.NewBoolVar(f"task_{task}_go_to_different_product") for task in tasks}
+    var_reach_campaign_end = {task: model.new_bool_var(f"task_{task}_reach_max") for task in tasks}
+    var_product_change = {task: model.new_bool_var(f"task_{task}_go_to_different_product") for task in tasks}
 
     # Heuristic: Lock the sequence of the tasks (assume the deadlines are in the task order
     # AND a task with later deadline shall not start earlier than a task with a earlier deadline)
@@ -67,68 +67,68 @@ def run_model(number_of_products, num_of_tasks_per_product, campaign_size, print
                 print(f"\nLocking {_index}", end=" ")
             else:
                 print(f" <= {_index}", end=" ")
-                model.Add(var_task_cumul[_index-1] <= var_task_cumul[_index])
+                model.add(var_task_cumul[_index-1] <= var_task_cumul[_index])
 
     # Option 2: Locking the sequence of all tasks! This is quicker (0.10s for 3, 4, 4)
     # print("Locking 0", end=" ")
     # for task in tasks:
     #     if task != 0:
     #         print(f"<= {task}", end=" ")
-    #         model.Add(var_task_starts[task-1] <= var_task_starts[task])
+    #         model.add(var_task_starts[task-1] <= var_task_starts[task])
 
     print("\n")
 
     var_task_intervals = {
-        t: model.NewIntervalVar(var_task_starts[t], processing_time, var_task_ends[t], f"task_{t}_interval")
+        t: model.new_interval_var(var_task_starts[t], processing_time, var_task_ends[t], f"task_{t}_interval")
         for t in tasks
     }
-    model.AddNoOverlap(var_task_intervals.values())
+    model.add_no_overlap(var_task_intervals.values())
 
     # Set objective to minimize make-span
-    make_span = model.NewIntVar(0, max_time, "make_span")
-    model.AddMaxEquality(make_span, [var_task_ends[task] for task in tasks])
-    model.Minimize(make_span)
+    make_span = model.new_int_var(0, max_time, "make_span")
+    model.add_max_equality(make_span, [var_task_ends[task] for task in tasks])
+    model.minimize(make_span)
 
     # the bool variables to indicator if t1 -> t2
-    literals = {(t1, t2): model.NewBoolVar(f"{t1} -> {t2}") for t1 in tasks for t2 in tasks if t1 != t2}
+    literals = {(t1, t2): model.new_bool_var(f"{t1} -> {t2}") for t1 in tasks for t2 in tasks if t1 != t2}
 
     # the technical variables to allow flexible campaigning
-    max_values = {(t1, t2): model.NewIntVar(0, max_time, f"{t1} -> {t2}") for t1 in tasks for t2 in tasks if t1 != t2}
+    max_values = {(t1, t2): model.new_int_var(0, max_time, f"{t1} -> {t2}") for t1 in tasks for t2 in tasks if t1 != t2}
 
     arcs = []
     for t1 in tasks:
-        arcs.append([-1, t1, model.NewBoolVar(f"first_to_{t1}")])
-        arcs.append([t1, -1, model.NewBoolVar(f"{t1}_to_last")])
+        arcs.append([-1, t1, model.new_bool_var(f"first_to_{t1}")])
+        arcs.append([t1, -1, model.new_bool_var(f"{t1}_to_last")])
         for t2 in tasks:
             if t1 == t2:
                 continue
             arcs.append([t1, t2, literals[t1, t2]])
 
             # [ task1 ] -> [ C/O ] -> [ task 2]
-            model.Add(var_product_change[t1] == product_change_indicator[t1, t2]).OnlyEnforceIf(
+            model.add(var_product_change[t1] == product_change_indicator[t1, t2]).only_enforce_if(
                 literals[t1, t2]
             )
 
-            model.Add(var_reach_campaign_end[t1] >= var_product_change[t1])
+            model.add(var_reach_campaign_end[t1] >= var_product_change[t1])
 
-            model.Add(
+            model.add(
                 var_task_ends[t1] + var_reach_campaign_end[t1]*changeover_time <= var_task_starts[t2]
-            ).OnlyEnforceIf(
+            ).only_enforce_if(
                 literals[t1, t2]
             )
 
             # allow flexible campaigning
-            model.AddMaxEquality(
+            model.add_max_equality(
                 max_values[t1, t2],
                 [0, var_task_cumul[t1] + 1 - var_reach_campaign_end[t1]*campaign_size]
             )
-            model.Add(var_task_cumul[t2] == max_values[t1, t2]).OnlyEnforceIf(literals[t1, t2])
+            model.add(var_task_cumul[t2] == max_values[t1, t2]).only_enforce_if(literals[t1, t2])
 
-    model.AddCircuit(arcs)
+    model.add_circuit(arcs)
 
     solver = cp_model.CpSolver()
     start = time()
-    status = solver.Solve(model=model)
+    status = solver.solve(model=model)
     total_time = time() - start
 
     if print_result:
@@ -137,16 +137,16 @@ def run_model(number_of_products, num_of_tasks_per_product, campaign_size, print
                 if task%num_of_tasks_per_product == 0:
                     print('--------- product divider ---------\n')
                 print(f'Task {task} {task_to_product[task]}',
-                      solver.Value(var_task_starts[task]),
-                      solver.Value(var_task_ends[task]),
-                      solver.Value(var_task_cumul[task]),
-                      solver.Value(var_reach_campaign_end[task]),
-                      solver.Value(var_product_change[task]),
+                      solver.value(var_task_starts[task]),
+                      solver.value(var_task_ends[task]),
+                      solver.value(var_task_cumul[task]),
+                      solver.value(var_reach_campaign_end[task]),
+                      solver.value(var_product_change[task]),
                       )
-                if solver.Value(var_reach_campaign_end[task]):
+                if solver.value(var_reach_campaign_end[task]):
                     print('-- campaign ends --\n')
             print('-------------------------------------------------')
-            print('Make-span:', solver.Value(make_span))
+            print('Make-span:', solver.value(make_span))
         elif status == cp_model.INFEASIBLE:
             print("Infeasible")
         elif status == cp_model.MODEL_INVALID:

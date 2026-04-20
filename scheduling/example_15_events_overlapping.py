@@ -7,50 +7,50 @@ tasks = {1, 2}
 # 1. Data
 
 var_task_starts = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_start") for task in tasks
+    task: model.new_int_var(0, max_time, f"task_{task}_start") for task in tasks
 }
 
 var_task_ends = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+    task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
 }
 
 # overlap
-# model.Add(var_task_starts[1] == 1)
-# model.Add(var_task_ends[1] == 5)
-# model.Add(var_task_starts[2] == 3)
-# model.Add(var_task_ends[2] == 7)
+# model.add(var_task_starts[1] == 1)
+# model.add(var_task_ends[1] == 5)
+# model.add(var_task_starts[2] == 3)
+# model.add(var_task_ends[2] == 7)
 
 # No overlap
-model.Add(var_task_starts[1] == 1)
-model.Add(var_task_ends[1] == 3)
-model.Add(var_task_starts[2] == 5)
-model.Add(var_task_ends[2] == 7)
+model.add(var_task_starts[1] == 1)
+model.add(var_task_ends[1] == 3)
+model.add(var_task_starts[2] == 5)
+model.add(var_task_ends[2] == 7)
 
 
 
 var_overlap = {
-    (t1, t2): model.NewBoolVar('')
+    (t1, t2): model.new_bool_var('')
     for t1 in tasks
     for t2 in tasks
     if t1 != t2
 }
 
 var_overlap_duration = {
-    (t1, t2): model.NewIntVar(0, max_time, '')
+    (t1, t2): model.new_int_var(0, max_time, '')
     for t1 in tasks
     for t2 in tasks
     if t1 != t2
 }
 
 var_start_earlier_than_start = {
-    (t1, t2): model.NewBoolVar('')
+    (t1, t2): model.new_bool_var('')
     for t1 in tasks
     for t2 in tasks
     if t1 != t2
 }
 
 var_end_later_than_start = {
-    (t1, t2): model.NewBoolVar('')
+    (t1, t2): model.new_bool_var('')
     for t1 in tasks
     for t2 in tasks
     if t1 != t2
@@ -60,35 +60,35 @@ for t1 in tasks:
     for t2 in tasks:
         if t1 == t2:
             continue
-        model.Add(var_task_starts[t1] <= var_task_starts[t2]).OnlyEnforceIf(var_start_earlier_than_start[t1, t2])
-        model.Add(var_task_starts[t1] > var_task_starts[t2]).OnlyEnforceIf(var_start_earlier_than_start[t1, t2].Not())
+        model.add(var_task_starts[t1] <= var_task_starts[t2]).only_enforce_if(var_start_earlier_than_start[t1, t2])
+        model.add(var_task_starts[t1] > var_task_starts[t2]).only_enforce_if(~var_start_earlier_than_start[t1, t2])
 
-        model.Add(var_task_ends[t1] > var_task_starts[t2]).OnlyEnforceIf(var_end_later_than_start[t1, t2])
-        model.Add(var_task_ends[t1] <= var_task_starts[t2]).OnlyEnforceIf(var_end_later_than_start[t1, t2].Not())
+        model.add(var_task_ends[t1] > var_task_starts[t2]).only_enforce_if(var_end_later_than_start[t1, t2])
+        model.add(var_task_ends[t1] <= var_task_starts[t2]).only_enforce_if(~var_end_later_than_start[t1, t2])
 
-        model.AddMultiplicationEquality(
+        model.add_multiplication_equality(
             var_overlap[t1, t2],
             [var_start_earlier_than_start[t1, t2], var_end_later_than_start[t1, t2]]
         )
 
-        model.Add(var_overlap_duration[t1, t2] == var_task_ends[t1] - var_task_starts[t2]).OnlyEnforceIf(var_overlap[t1, t2])
-        model.Add(var_overlap_duration[t1, t2] == 0).OnlyEnforceIf(var_overlap[t1, t2].Not())
+        model.add(var_overlap_duration[t1, t2] == var_task_ends[t1] - var_task_starts[t2]).only_enforce_if(var_overlap[t1, t2])
+        model.add(var_overlap_duration[t1, t2] == 0).only_enforce_if(~var_overlap[t1, t2])
 
 
 
 
 # 3. Objectives
-make_span = model.NewIntVar(0, max_time, "make_span")
-model.AddMaxEquality(
+make_span = model.new_int_var(0, max_time, "make_span")
+model.add_max_equality(
     make_span,
     [var_task_ends[task] for task in tasks]
 )
-model.Minimize(make_span)
+model.minimize(make_span)
 
 
 # 4. Solve
 solver = cp_model.CpSolver()
-status = solver.Solve(model=model)
+status = solver.solve(model=model)
 
 
 # 5. Results
@@ -99,20 +99,20 @@ if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         for t2 in tasks:
             if t1 == t2:
                 continue
-            if solver.Value(var_overlap[t1,t2]):
+            if solver.value(var_overlap[t1,t2]):
                 count = count + 1
                 print(f'Task{t1} starts earlier and overlap Task{t2} for a duration of '
-                      f'{solver.Value(var_overlap_duration[t1, t2])} units')
+                      f'{solver.value(var_overlap_duration[t1, t2])} units')
     if count == 0:
         print("No overlapped tasks at all")
 
     print('===========================  TASKS SUMMARY  ===========================')
     for task in tasks:
         print(f'Task {task} ',
-              solver.Value(var_task_starts[task]), solver.Value(var_task_ends[task]),
+              solver.value(var_task_starts[task]), solver.value(var_task_ends[task]),
               )
 
-    print('Make-span:', solver.Value(make_span))
+    print('Make-span:', solver.value(make_span))
 
 elif status == cp_model.INFEASIBLE:
     print("Infeasible")

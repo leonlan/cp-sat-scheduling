@@ -5,21 +5,21 @@ model = cp_model.CpModel()
 
 num_vals = 3
 
-x = model.NewIntVar(0, num_vals - 1, 'x')
-y = model.NewIntVar(0, num_vals - 1, 'y')
-z = model.NewIntVar(0, num_vals - 1, 'z')
+x = model.new_int_var(0, num_vals - 1, 'x')
+y = model.new_int_var(0, num_vals - 1, 'y')
+z = model.new_int_var(0, num_vals - 1, 'z')
 
 
-model.Add(x != y)
+model.add(x != y)
 
 solver = cp_model.CpSolver()
 
-status = solver.Solve(model)
+status = solver.solve(model)
 
 if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-    print('x = %i' % solver.Value(x))
-    print('y = %i' % solver.Value(y))
-    print('z = %i' % solver.Value(z))
+    print('x = %i' % solver.value(x))
+    print('y = %i' % solver.value(y))
+    print('z = %i' % solver.value(z))
 else:
     print('No solution found.')
 
@@ -38,7 +38,7 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     def on_solution_callback(self):
         self.__solution_count += 1
         for v in self.__variables:
-            print('%s=%i' % (v, self.Value(v)), end=' ')
+            print('%s=%i' % (v, self.value(v)), end=' ')
         print()
 
     def solution_count(self):
@@ -50,5 +50,5 @@ solution_printer = VarArraySolutionPrinter([x, y, z])
 # Enumerate all solutions.
 solver.parameters.enumerate_all_solutions = True
 # Solve.
-status = solver.Solve(model, solution_printer)
+status = solver.solve(model, solution_printer)
 

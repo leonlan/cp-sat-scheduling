@@ -45,30 +45,30 @@ def model(num_tasks):
 
     # 2. Decision variables
     variables_task_ends = {
-        task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+        task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
     }
 
     variables_task_starts = {
-        task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+        task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
     }
 
     variables_machine_task_starts = {
-        (m, t): model.NewIntVar(0, max_time, f"start_{m}_{t}")
+        (m, t): model.new_int_var(0, max_time, f"start_{m}_{t}")
         for t in tasks
         for m in machines
     }
     variables_machine_task_ends = {
-        (m, t): model.NewIntVar(0, max_time, f"start_{m}_{t}")
+        (m, t): model.new_int_var(0, max_time, f"start_{m}_{t}")
         for t in tasks
         for m in machines
     }
     variables_machine_task_presences = {
-        (m, t): model.NewBoolVar(f"presence_{m}_{t}")
+        (m, t): model.new_bool_var(f"presence_{m}_{t}")
         for t in tasks
         for m in machines
     }
     variables_intervals = {
-        (m, t): model.NewOptionalIntervalVar(
+        (m, t): model.new_optional_interval_var(
             start=variables_machine_task_starts[m, t],
             size=processing_time[task_to_product[t]],
             end=variables_machine_task_ends[m, t],
@@ -80,26 +80,26 @@ def model(num_tasks):
     }
 
     variables_machine_task_sequence = {
-        (m, t1, t2): model.NewBoolVar(f"Machine {m} task {t1} --> task {t2}")
+        (m, t1, t2): model.new_bool_var(f"Machine {m} task {t1} --> task {t2}")
         for (m, t1, t2) in X
     }
 
 
     # 3. Objectives
 
-    total_changeover_time = model.NewIntVar(0, max_time, "total_changeover_time")
+    total_changeover_time = model.new_int_var(0, max_time, "total_changeover_time")
 
     total_changeover_time = sum(
         [variables_machine_task_sequence[(m, t1, t2)]*m_cost[(m, t1, t2)] for (m, t1, t2) in X]
     )
 
-    make_span = model.NewIntVar(0, max_time, "make_span")
+    make_span = model.new_int_var(0, max_time, "make_span")
 
-    model.AddMaxEquality(
+    model.add_max_equality(
         make_span,
         [variables_task_ends[task] for task in tasks]
     )
-    model.Minimize(make_span + total_changeover_time)
+    model.minimize(make_span + total_changeover_time)
 
     # 4. Constraints
     for task in tasks:
@@ -111,22 +111,22 @@ def model(num_tasks):
         ]
 
         # this task is only present in one machine
-        model.AddExactlyOne(tmp)
+        model.add_exactly_one(tmp)
 
         # task level link to machine-task level
         for m in task_candidate_machines:
-            model.Add(
+            model.add(
                 variables_task_starts[task] == variables_machine_task_starts[m, task]
-            ).OnlyEnforceIf(variables_machine_task_presences[m, task])
+            ).only_enforce_if(variables_machine_task_presences[m, task])
 
-            model.Add(
+            model.add(
                 variables_task_ends[task] == variables_machine_task_ends[m, task]
-            ).OnlyEnforceIf(variables_machine_task_presences[m, task])
+            ).only_enforce_if(variables_machine_task_presences[m, task])
 
     for machine in machines:
         tmp = {(m, t) for (m, t) in variables_intervals if m == machine}
         intervals = [variables_intervals[x] for x in tmp]
-        model.AddNoOverlap(intervals)
+        model.add_no_overlap(intervals)
 
     # Create circuit constraints
     add_circuit_constraints(
@@ -142,7 +142,7 @@ def model(num_tasks):
     solver = cp_model.CpSolver()
     solver.parameters.num_search_workers = 8
     start = time()
-    status = solver.Solve(model=model)
+    status = solver.solve(model=model)
     total_time = time() - start
 
     return total_time
@@ -166,11 +166,11 @@ def add_circuit_constraints(
             mt_1 = str(task_1) + "_" + str(machine)
             # Initial arc from the dummy node (0) to a task.
             arcs.append(
-                [0, node_1 + 1, model.NewBoolVar("first" + "_" + mt_1)]
+                [0, node_1 + 1, model.new_bool_var("first" + "_" + mt_1)]
             )  # if mt_1 follows dummy node 0
             # Final arc from an arc to the dummy node (0).
             arcs.append(
-                [node_1 + 1, 0, model.NewBoolVar("last" + "_" + mt_1)]
+                [node_1 + 1, 0, model.new_bool_var("last" + "_" + mt_1)]
             )  # if dummy node 0 follows mt_1
 
             # For optional task on machine (i.e other machine choice)
@@ -179,7 +179,7 @@ def add_circuit_constraints(
                 [
                     node_1 + 1,
                     node_1 + 1,
-                    variables_machine_task_presences[(machine, task_1)].Not(),
+                    ~variables_machine_task_presences[(machine, task_1)],
                 ]
             )
 
@@ -188,18 +188,18 @@ def add_circuit_constraints(
                     continue
                 mt_2 = str(task_2) + "_" + str(machine)
                 # Add sequential boolean constraint: mt_2 follows mt_1
-                mt2_after_mt1 = model.NewBoolVar(f"{mt_2} follows {mt_1}")
+                mt2_after_mt1 = model.new_bool_var(f"{mt_2} follows {mt_1}")
                 arcs.append([node_1 + 1, node_2 + 1, mt2_after_mt1])
 
                 # We add the reified precedence to link the literal with the
                 # times of the two tasks.
                 min_distance = 0
                 (
-                    model.Add(
+                    model.add(
                         variables_task_starts[task_2] >= variables_task_ends[task_1] + min_distance
-                    ).OnlyEnforceIf(mt2_after_mt1)
+                    ).only_enforce_if(mt2_after_mt1)
                 )
-        model.AddCircuit(arcs)
+        model.add_circuit(arcs)
 
 
 

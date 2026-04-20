@@ -25,25 +25,25 @@ def run_model(num_tasks, campaign_size, print_result=True):
     processing_time = 1
 
     tasks, task_to_product = generate_one_product_data(num_tasks)
-    var_task_starts = {task: model.NewIntVar(0, max_time, f"task_{task}_start") for task in tasks}
-    var_task_ends = {task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks}
-    var_task_cumul = {task: model.NewIntVar(0, campaign_size-1, f"task_{task}_cumul") for task in tasks}
-    model.Add(var_task_cumul[0]==0)
-    var_reach_campaign_end = {task: model.NewBoolVar(f"task_{task}_reach_max") for task in tasks}
+    var_task_starts = {task: model.new_int_var(0, max_time, f"task_{task}_start") for task in tasks}
+    var_task_ends = {task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks}
+    var_task_cumul = {task: model.new_int_var(0, campaign_size-1, f"task_{task}_cumul") for task in tasks}
+    model.add(var_task_cumul[0]==0)
+    var_reach_campaign_end = {task: model.new_bool_var(f"task_{task}_reach_max") for task in tasks}
 
     # Lock the sequence of the tasks (assume the deadlines are in this sequence !)
     # A relative later task shall not start earlier than a relative earlier task
     for task in tasks:
         if task != 0:
-            model.Add(var_task_starts[task-1] <= var_task_starts[task])
+            model.add(var_task_starts[task-1] <= var_task_starts[task])
 
     # ! SHALL REMOVE THE FOLLOWING ! LEAVE THE DECISION (OF STARTING A NEW CAMPAIGN OR NOT) BACK TO THE MODEL !
     # for task in tasks:
-    #     model.Add(var_task_cumul[task] == campaign_size-1).OnlyEnforceIf(var_task_reach_max[task])
-    #     model.Add(var_task_cumul[task] < campaign_size-1).OnlyEnforceIf(var_task_reach_max[task].Not())
+    #     model.add(var_task_cumul[task] == campaign_size-1).only_enforce_if(var_task_reach_max[task])
+    #     model.add(var_task_cumul[task] < campaign_size-1).only_enforce_if(~var_task_reach_max[task])
 
     var_task_intervals = {
-        t: model.NewIntervalVar(
+        t: model.new_interval_var(
             var_task_starts[t],
             processing_time,
             var_task_ends[t],
@@ -51,42 +51,42 @@ def run_model(num_tasks, campaign_size, print_result=True):
         )
         for t in tasks
     }
-    model.AddNoOverlap(var_task_intervals.values())
+    model.add_no_overlap(var_task_intervals.values())
 
-    make_span = model.NewIntVar(0, max_time, "make_span")
-    model.AddMaxEquality(make_span, [var_task_ends[task] for task in tasks])
-    model.Minimize(make_span)
+    make_span = model.new_int_var(0, max_time, "make_span")
+    model.add_max_equality(make_span, [var_task_ends[task] for task in tasks])
+    model.minimize(make_span)
 
-    literals = {(t1, t2): model.NewBoolVar(f"{t1} -> {t2}") for t1 in tasks for t2 in tasks if t1 != t2}
+    literals = {(t1, t2): model.new_bool_var(f"{t1} -> {t2}") for t1 in tasks for t2 in tasks if t1 != t2}
 
-    max_values = {(t1, t2): model.NewIntVar(0, max_time, f"{t1} -> {t2}") for t1 in tasks for t2 in tasks if t1 != t2}
+    max_values = {(t1, t2): model.new_int_var(0, max_time, f"{t1} -> {t2}") for t1 in tasks for t2 in tasks if t1 != t2}
 
     arcs = []
     for t1 in tasks:
-        arcs.append([-1, t1, model.NewBoolVar(f"first_to_{t1}")])
-        arcs.append([t1, -1, model.NewBoolVar(f"{t1}_to_last")])
+        arcs.append([-1, t1, model.new_bool_var(f"first_to_{t1}")])
+        arcs.append([t1, -1, model.new_bool_var(f"{t1}_to_last")])
         for t2 in tasks:
             if t1 == t2:
                 continue
             arcs.append([t1, t2, literals[t1, t2]])
 
             # [ task1 ] -> [ C/O ] -> [ task 2]
-            model.Add(
+            model.add(
                 var_task_ends[t1] + var_reach_campaign_end[t1]*changeover_time <= var_task_starts[t2]
-            ).OnlyEnforceIf(
+            ).only_enforce_if(
                 literals[t1, t2]
             )
 
             # This is for fixed campaigning size. DO full-campaign or NOT DO.
-            # model.Add(
+            # model.add(
             #    var_task_cumul[t2] == var_task_cumul[t1] + 1 - var_task_reach_max[t1]*campaign_size
-            # ).OnlyEnforceIf(literals[t1, t2])
+            # ).only_enforce_if(literals[t1, t2])
 
-            # The creator has confirmed AddMaxEquality is not compatible with OnlyEnforceIf
-            # model.AddMaxEquality(
+            # The creator has confirmed add_max_equality is not compatible with only_enforce_if
+            # model.add_max_equality(
             #     var_task_cumul[t2],
             #     [0,var_task_cumul[t1] + 1 - var_reach_campaign_end[t1]*campaign_size]
-            # ).OnlyEnforceIf(literals[t1, t2])
+            # ).only_enforce_if(literals[t1, t2])
 
             # ! HERE IS THE CHANGE RECOMMENDED FOR FLEXIBLE CAMPAIGNING. BUT IN TWO STEPS !
             # NOTE var_reach_campaign_end ARE NOW OPEN BOOL DECISION VARIABLES.
@@ -96,30 +96,30 @@ def run_model(num_tasks, campaign_size, print_result=True):
             #
             # If not yet reaching limit (var_task_cumul +1 < campaign_size), the expression is max(0, -x)
             #   model can still choose to do C/O by having var_reach_campaign_end to be 1 (if that brings a better obj)
-            model.AddMaxEquality(
+            model.add_max_equality(
                 max_values[t1, t2],
                 [0, var_task_cumul[t1] + 1 - var_reach_campaign_end[t1]*campaign_size]
             )
-            model.Add(var_task_cumul[t2] == max_values[t1, t2]).OnlyEnforceIf(literals[t1, t2])
+            model.add(var_task_cumul[t2] == max_values[t1, t2]).only_enforce_if(literals[t1, t2])
 
-    model.AddCircuit(arcs)
+    model.add_circuit(arcs)
 
     solver = cp_model.CpSolver()
     start = time()
-    status = solver.Solve(model=model)
+    status = solver.solve(model=model)
     total_time = time() - start
 
     if print_result:
         if status == cp_model.OPTIMAL:
             for task in tasks:
                 print(f'Task {task} ',
-                      solver.Value(var_task_starts[task]),
-                      solver.Value(var_task_ends[task]),
-                      solver.Value(var_task_cumul[task]),
-                      solver.Value(var_reach_campaign_end[task])
+                      solver.value(var_task_starts[task]),
+                      solver.value(var_task_ends[task]),
+                      solver.value(var_task_cumul[task]),
+                      solver.value(var_reach_campaign_end[task])
                       )
             print('-------------------------------------------------')
-            print('Make-span:', solver.Value(make_span))
+            print('Make-span:', solver.value(make_span))
         elif status == cp_model.INFEASIBLE:
             print("Infeasible")
         elif status == cp_model.MODEL_INVALID:

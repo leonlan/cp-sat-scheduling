@@ -3,19 +3,19 @@
 A break is a time window during which a machine or operator is unavailable.
 Three techniques cover most cases.
 
-## 1. Break as a fixed interval in `AddCumulative`
+## 1. Break as a fixed interval in `add_cumulative`
 
-For each break, build a `NewFixedSizeIntervalVar` and add it alongside task
+For each break, build a `new_fixed_size_interval_var` and add it alongside task
 intervals with the full demand. Tasks are pushed around the break.
 
 ```python
 break_intervals = [
-    model.NewFixedSizeIntervalVar(start=s, size=e - s, name="break")
+    model.new_fixed_size_interval_var(start=s, size=e - s, name="break")
     for (s, e) in breaks
 ]
 all_intervals = task_intervals + break_intervals
 demands = [1] * len(task_intervals) + [1] * len(break_intervals)
-model.AddCumulative(all_intervals, demands, capacity=1)
+model.add_cumulative(all_intervals, demands, capacity=1)
 ```
 
 Example: `example_07_break_without_changeover.py`.
@@ -29,7 +29,7 @@ task uses slot `i`, then add `is_break[i]` for each covered slot.
 ```python
 uses[t, i] = starts_before_i AND ends_after_i
 duration[t] = base + sum(is_break[i] * uses[t, i] for i)
-interval[t] = NewIntervalVar(start, duration, end, ...)
+interval[t] = new_interval_var(start, duration, end, ...)
 ```
 
 Example: `example_14_task_delaying_break.py`.
@@ -37,11 +37,11 @@ Example: `example_14_task_delaying_break.py`.
 ## 3. Break-aware start domains
 
 If the break pattern is periodic, restrict task starts to the valid slots
-with `AddLinearExpressionInDomain`. Much faster than per-slot booleans.
+with `add_linear_expression_in_domain`. Much faster than per-slot booleans.
 
 ```python
-domain_no_break = cp_model.Domain.FromValues([...])
-model.AddLinearExpressionInDomain(start[t], domain_no_break)
+domain_no_break = cp_model.Domain.from_values([...])
+model.add_linear_expression_in_domain(start[t], domain_no_break)
 ```
 
 Example: `example_29_linear_domain_for_breaks.py`,

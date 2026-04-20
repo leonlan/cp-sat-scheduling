@@ -20,14 +20,14 @@ def generate_data(num_tasks):
 def add_circuit_constraints(model, tasks, var_task_starts, var_task_ends, literals):
     arcs = []
     for t1 in tasks:
-        arcs.append([0, t1, model.NewBoolVar(f"first_to_{t1}")])
-        arcs.append([t1, 0, model.NewBoolVar(f"{t1}_to_last")])
+        arcs.append([0, t1, model.new_bool_var(f"first_to_{t1}")])
+        arcs.append([t1, 0, model.new_bool_var(f"{t1}_to_last")])
         for t2 in tasks:
             if t1 == t2:
                 continue
             arcs.append([t1, t2, literals[t1, t2]])
-            model.Add(var_task_ends[t1] <= var_task_starts[t2]).OnlyEnforceIf(literals[t1, t2])
-    model.AddCircuit(arcs)
+            model.add(var_task_ends[t1] <= var_task_starts[t2]).only_enforce_if(literals[t1, t2])
+    model.add_circuit(arcs)
 
 
 def run_model(num_tasks, max_conti_task_num):
@@ -114,14 +114,14 @@ def run_model(num_tasks, max_conti_task_num):
 
     # Task level
     variables_task_ends = {
-        task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+        task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
     }
     variables_task_starts = {
-        task: model.NewIntVar(0, max_time, f"task_{task}_start") for task in tasks
+        task: model.new_int_var(0, max_time, f"task_{task}_start") for task in tasks
     }
 
     var_task_intervals = {
-        t: model.NewIntervalVar(
+        t: model.new_interval_var(
             variables_task_starts[t],
             processing_time,
             variables_task_ends[t],
@@ -129,37 +129,37 @@ def run_model(num_tasks, max_conti_task_num):
         )
         for t in tasks
     }
-    # model.AddNoOverlap([x for x in var_task_intervals.values()])
-    model.AddNoOverlap(list(var_task_intervals.values()))
+    # model.add_no_overlap([x for x in var_task_intervals.values()])
+    model.add_no_overlap(list(var_task_intervals.values()))
 
     # Objectives
-    make_span = model.NewIntVar(0, max_time, "make_span")
-    model.AddMaxEquality(
+    make_span = model.new_int_var(0, max_time, "make_span")
+    model.add_max_equality(
         make_span,
         [variables_task_ends[task] for task in tasks]
     )
-    model.Minimize(make_span)
+    model.minimize(make_span)
 
     # Campaigning related
 
     var_campaign_starts = {
-        c: model.NewIntVar(0, max_time, f"start_{c}") for c in campaigns
+        c: model.new_int_var(0, max_time, f"start_{c}") for c in campaigns
     }
 
     var_campaign_ends = {
-        c: model.NewIntVar(0, max_time, f"c_end_{c}") for c in campaigns
+        c: model.new_int_var(0, max_time, f"c_end_{c}") for c in campaigns
     }
 
     var_campaign_durations = {
-        c: model.NewIntVar(0, max_time, f"c_duration_{c}") for c in campaigns
+        c: model.new_int_var(0, max_time, f"c_duration_{c}") for c in campaigns
     }
 
     var_campaign_presences = {
-        c: model.NewBoolVar(f"c_presence_{c}") for c in campaigns
+        c: model.new_bool_var(f"c_presence_{c}") for c in campaigns
     }
 
     var_campaign_intervals = {
-        c: model.NewOptionalIntervalVar(
+        c: model.new_optional_interval_var(
             var_campaign_starts[c],
             var_campaign_durations[c],
             var_campaign_ends[c],
@@ -169,11 +169,11 @@ def run_model(num_tasks, max_conti_task_num):
         for c in campaigns
     }
 
-    model.AddNoOverlap(list(var_campaign_intervals.values()))
+    model.add_no_overlap(list(var_campaign_intervals.values()))
 
     # If a task in allocated to a campaign
     var_task_campaign_presences = {
-        (t, c): model.NewBoolVar(f"task_{t}_presence_in_campaign_{c}") for t in tasks for c in task_to_campaigns[t]
+        (t, c): model.new_bool_var(f"task_{t}_presence_in_campaign_{c}") for t in tasks for c in task_to_campaigns[t]
     }
 
     # add_campaign_definition_constraints
@@ -181,7 +181,7 @@ def run_model(num_tasks, max_conti_task_num):
 
     for c in campaigns:
         #  1. Duration definition
-        model.Add(
+        model.add(
             var_campaign_durations[c] == sum(
                 processing_time * var_task_campaign_presences[t, c]
                 for t in campaign_to_tasks[c]
@@ -190,15 +190,15 @@ def run_model(num_tasks, max_conti_task_num):
         # 2. Start-end definition
         for t in campaign_to_tasks[c]:
 
-            model.Add(var_campaign_starts[c] <= variables_task_starts[t]).OnlyEnforceIf(
+            model.add(var_campaign_starts[c] <= variables_task_starts[t]).only_enforce_if(
                 var_task_campaign_presences[t, c]
             )
-            model.Add(variables_task_ends[t] <= var_campaign_ends[c]).OnlyEnforceIf(
+            model.add(variables_task_ends[t] <= var_campaign_ends[c]).only_enforce_if(
                 var_task_campaign_presences[t, c]
             )
         # 3. Link c & tc presence: If 1 task is scheduled on a campaign -> presence[t, c] = 1 ==> presence[c] == 1
         # as long as there is one task in a campaign, this campaign must be present
-        model.AddMaxEquality(
+        model.add_max_equality(
             var_campaign_presences[c], [var_task_campaign_presences[t, c] for t in campaign_to_tasks[c]]
         )
 
@@ -206,7 +206,7 @@ def run_model(num_tasks, max_conti_task_num):
     for task in tasks:
         # One task belongs to at most 1 campaign
         # task_to_campaigns[task]
-        model.Add(
+        model.add(
             sum(var_task_campaign_presences[task, campaign]
                 for campaign in campaigns
                 if campaign in task_to_campaigns[task]
@@ -214,7 +214,7 @@ def run_model(num_tasks, max_conti_task_num):
             )
 
     for c in campaigns:
-        model.Add(
+        model.add(
             var_campaign_durations[c] <= max_conti_task_num
         )
 
@@ -227,17 +227,17 @@ def run_model(num_tasks, max_conti_task_num):
 
     for node_1, campaign_1 in enumerate(campaigns):
 
-        tmp1 = model.NewBoolVar(f'first_to_{campaign_1}')
+        tmp1 = model.new_bool_var(f'first_to_{campaign_1}')
         arcs.append([
             0, node_1 + 1, tmp1
         ])
 
-        tmp2 = model.NewBoolVar(f'{campaign_1}_to_last')
+        tmp2 = model.new_bool_var(f'{campaign_1}_to_last')
         arcs.append([
             node_1 + 1, 0, tmp2
         ])
 
-        arcs.append([node_1 + 1, node_1 + 1, var_campaign_presences[campaign_1].Not()])
+        arcs.append([node_1 + 1, node_1 + 1, ~var_campaign_presences[campaign_1]])
 
         # for outputting
         var_campaign_sequence.update({(0, campaign_1): tmp1})
@@ -248,7 +248,7 @@ def run_model(num_tasks, max_conti_task_num):
             if node_1 == node_2:
                 continue
 
-            indicator_node_1_to_node_2 = model.NewBoolVar(f'{campaign_1}_to_{campaign_2}')
+            indicator_node_1_to_node_2 = model.new_bool_var(f'{campaign_1}_to_{campaign_2}')
 
             var_campaign_sequence.update({(campaign_1, campaign_2): indicator_node_1_to_node_2})
 
@@ -256,23 +256,23 @@ def run_model(num_tasks, max_conti_task_num):
 
             arcs.append([node_1 + 1, node_2 + 1, indicator_node_1_to_node_2])
 
-            model.Add(
+            model.add(
                 var_campaign_ends[campaign_1] + distance <= var_campaign_starts[campaign_2]
-            ).OnlyEnforceIf(
+            ).only_enforce_if(
                 indicator_node_1_to_node_2
-            ).OnlyEnforceIf(
+            ).only_enforce_if(
                 var_campaign_presences[campaign_1]
-            ).OnlyEnforceIf(
+            ).only_enforce_if(
                 var_campaign_presences[campaign_2]
             )
 
-    model.AddCircuit(arcs)
+    model.add_circuit(arcs)
 
     # Solve
     solver = cp_model.CpSolver()
     start = time()
 
-    status = solver.Solve(model=model)
+    status = solver.solve(model=model)
     total_time = time() - start
     if status == cp_model.OPTIMAL:
         return total_time

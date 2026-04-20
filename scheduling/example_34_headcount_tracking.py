@@ -43,7 +43,7 @@ def extract_solution(solver: cp_model.CpSolver, variables):
                 solution,
                 varname,
                 {
-                    k: solver.Value(v) if type(v) not in [cp_model.IntervalVar] else v
+                    k: solver.value(v) if type(v) not in [cp_model.IntervalVar] else v
                     for k, v in vardict.items()
                 },
             )
@@ -85,42 +85,42 @@ if __name__ == '__main__':
     tasks = {x for x in range(num_of_tasks)}
     starts_no_break = [x * 3 + break_offset + 1 for x in range(-1, num_of_tasks) if x * 3 + break_offset + 1 >= 0]
     starts_break = list(set(range(max_time)).difference(starts_no_break))
-    domain_no_break = cp_model.Domain.FromValues([x for x in starts_no_break])
-    domain_break = cp_model.Domain.FromValues([x for x in starts_break])
+    domain_no_break = cp_model.Domain.from_values([x for x in starts_no_break])
+    domain_break = cp_model.Domain.from_values([x for x in starts_break])
 
     model = cp_model.CpModel()
 
-    variables.var_task_starts = {task: model.NewIntVar(0, max_time, f"task_{task}_start") for task in tasks}
-    variables.var_task_ends = {task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks}
-    variables.var_task_durations = {task: model.NewIntVar(2, 3, f"task_{task}_end") for task in tasks}
-    variables.var_task_overlap_break = {task: model.NewBoolVar(f"task_{task}_overlap_a_break") for task in tasks}
+    variables.var_task_starts = {task: model.new_int_var(0, max_time, f"task_{task}_start") for task in tasks}
+    variables.var_task_ends = {task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks}
+    variables.var_task_durations = {task: model.new_int_var(2, 3, f"task_{task}_end") for task in tasks}
+    variables.var_task_overlap_break = {task: model.new_bool_var(f"task_{task}_overlap_a_break") for task in tasks}
 
     for task in tasks:
         if task == 0:
             continue
-        model.Add(variables.var_task_ends[task - 1] <= variables.var_task_starts[task])
+        model.add(variables.var_task_ends[task - 1] <= variables.var_task_starts[task])
 
     for task in tasks:
-        model.AddLinearExpressionInDomain(variables.var_task_starts[task], domain_break).OnlyEnforceIf(
+        model.add_linear_expression_in_domain(variables.var_task_starts[task], domain_break).only_enforce_if(
             variables.var_task_overlap_break[task]
         )
 
-        model.AddLinearExpressionInDomain(variables.var_task_starts[task], domain_no_break).OnlyEnforceIf(
-            variables.var_task_overlap_break[task].Not()
+        model.add_linear_expression_in_domain(variables.var_task_starts[task], domain_no_break).only_enforce_if(
+            variables.~var_task_overlap_break[task]
         )
-        # model.Add(variables.var_task_durations[task] == processing_time + variables.var_task_overlap_break[task] * 1)
+        # model.add(variables.var_task_durations[task] == processing_time + variables.var_task_overlap_break[task] * 1)
 
-        model.Add(variables.var_task_durations[task] == processing_time + 1).OnlyEnforceIf(
+        model.add(variables.var_task_durations[task] == processing_time + 1).only_enforce_if(
             variables.var_task_overlap_break[task]
         )
 
-        model.Add(variables.var_task_durations[task] == processing_time).OnlyEnforceIf(
-            variables.var_task_overlap_break[task].Not()
+        model.add(variables.var_task_durations[task] == processing_time).only_enforce_if(
+            variables.~var_task_overlap_break[task]
         )
 
     # intervals
     variables.var_intervals = {
-        task: model.NewIntervalVar(
+        task: model.new_interval_var(
             variables.var_task_starts[task],
             variables.var_task_durations[task],
             variables.var_task_ends[task],
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     if tracking_method == 0:
         # native  cumulative
 
-        variables.resource_needs = {'all': model.NewIntVar(0, 10, 'resource_needs')}
+        variables.resource_needs = {'all': model.new_int_var(0, 10, 'resource_needs')}
         resource_needs = {task: 1 for task in tasks}
 
         intervals, headcounts = [], []
@@ -145,62 +145,62 @@ if __name__ == '__main__':
             intervals.append(variables.var_intervals[task])
             headcounts.append(resource_needs[task])
         # 2.2 Create cumulative constraints
-        model.AddCumulative(intervals, headcounts, variables.resource_needs['all'])
+        model.add_cumulative(intervals, headcounts, variables.resource_needs['all'])
     elif tracking_method == 1:
         # cumulative_with_start_time
 
         max_r = 10
-        lb = [variables.var_task_starts[i].Proto().domain[0] for i in tasks]
-        ub = [variables.var_task_starts[i].Proto().domain[1] for i in tasks]
+        lb = [variables.var_task_starts[i].proto().domain[0] for i in tasks]
+        ub = [variables.var_task_starts[i].proto().domain[1] for i in tasks]
 
         times_min = min(lb)
         times_max = max(ub)
         time_range = range(times_min, times_max + 1)
-        variables.resource_needs = {t: model.NewIntVar(0, max_r, f'resource_{t}')
+        variables.resource_needs = {t: model.new_int_var(0, max_r, f'resource_{t}')
                                     for t in time_range
                                     }
-        variables.task_resource_needs = {(task, t): model.NewIntVar(0, max_r, f'resource_{task}_{t}')
+        variables.task_resource_needs = {(task, t): model.new_int_var(0, max_r, f'resource_{task}_{t}')
                                          for task in tasks
                                          for t in time_range
                                          }
-        variables.duration_task_resource_needs = {(task, t, duration): model.NewIntVar(0, max_r, f'resource_{task}_{t}')
+        variables.duration_task_resource_needs = {(task, t, duration): model.new_int_var(0, max_r, f'resource_{task}_{t}')
                                                   for task in tasks
                                                   for t in time_range
                                                   for duration in [2, 3]
                                                   }
         variables.var_task_starts_presence = {
-            (task, t): model.NewBoolVar(f'start_{task}_{t}')
+            (task, t): model.new_bool_var(f'start_{task}_{t}')
             for task in tasks
             for t in range(times_min, times_max + 1)
         }
         for task in tasks:
-            model.AddExactlyOne([variables.var_task_starts_presence[task, t] for t in time_range])
+            model.add_exactly_one([variables.var_task_starts_presence[task, t] for t in time_range])
             # Define min & max duration
-            min_duration = variables.var_task_durations[task].Proto().domain[0]
-            max_duration = variables.var_task_durations[task].Proto().domain[1]
+            min_duration = variables.var_task_durations[task].proto().domain[0]
+            max_duration = variables.var_task_durations[task].proto().domain[1]
             for t in time_range:
                 # Capture start time
-                model.Add(variables.var_task_starts[task] == t).OnlyEnforceIf(
+                model.add(variables.var_task_starts[task] == t).only_enforce_if(
                     variables.var_task_starts_presence[task, t])
                 # Capture based on duration
                 for duration in [min_duration, max_duration]:
-                    model.AddMaxEquality(variables.duration_task_resource_needs[task, t, duration],
+                    model.add_max_equality(variables.duration_task_resource_needs[task, t, duration],
                                          [variables.var_task_starts_presence[task, t_start]
                                           for t_start in range(t - duration + 1, t + 1)
                                           if (task, t_start) in variables.var_task_starts_presence
                                           ]
                                          )
                 # Capture the actual task duration and the needs
-                model.Add(variables.task_resource_needs[task, t]
+                model.add(variables.task_resource_needs[task, t]
                           == variables.duration_task_resource_needs[task, t, 2]
-                          ).OnlyEnforceIf(variables.var_task_overlap_break[task].Not())
-                model.Add(variables.task_resource_needs[task, t]
+                          ).only_enforce_if(variables.~var_task_overlap_break[task])
+                model.add(variables.task_resource_needs[task, t]
                           == variables.duration_task_resource_needs[task, t, 3]
-                          ).OnlyEnforceIf(variables.var_task_overlap_break[task])
+                          ).only_enforce_if(variables.var_task_overlap_break[task])
 
         # Capture total resource needs
         for t in range(times_min, times_max + 1):
-            model.Add(variables.resource_needs[t] == sum([variables.task_resource_needs[task, t] * 1
+            model.add(variables.resource_needs[t] == sum([variables.task_resource_needs[task, t] * 1
                                                           for task in tasks
                                                           ]
                                                          ))
@@ -210,71 +210,71 @@ if __name__ == '__main__':
         """
 
         max_r = 10
-        lb = [variables.var_task_starts[i].Proto().domain[0] for i in tasks]
-        ub = [variables.var_task_starts[i].Proto().domain[1] for i in tasks]
+        lb = [variables.var_task_starts[i].proto().domain[0] for i in tasks]
+        ub = [variables.var_task_starts[i].proto().domain[1] for i in tasks]
 
         times_min = min(lb)
         times_max = max(ub)
         resource_needs = {task: 1 for task in tasks}
-        variables.resource_needs = {t: model.NewIntVar(0, max_r, f'resource_{t}')
+        variables.resource_needs = {t: model.new_int_var(0, max_r, f'resource_{t}')
                                     for t in range(times_min, times_max + 1)
                                     }
-        variables.task_resource_needs = {(task, t): model.NewIntVar(0, max_r, f'resource_{task}_{t}')
+        variables.task_resource_needs = {(task, t): model.new_int_var(0, max_r, f'resource_{task}_{t}')
                                          for task in tasks
                                          for t in range(times_min, times_max + 1)
                                          }
-        variables.duration_task_resource_needs = {(task, t, duration): model.NewIntVar(0, max_r, f'resource_{task}_{t}')
+        variables.duration_task_resource_needs = {(task, t, duration): model.new_int_var(0, max_r, f'resource_{task}_{t}')
                                                   for task in tasks
                                                   for t in range(times_min, times_max + 1)
                                                   for duration in [2, 3]
                                                   }
         variables.var_task_starts_presence = {
-            (task, t): model.NewBoolVar(f'start_{task}_{t}')
+            (task, t): model.new_bool_var(f'start_{task}_{t}')
             for task in tasks
             for t in range(times_min, times_max + 1)
         }
         for task in tasks:
             for t in range(times_min, times_max + 1):
                 # s[i] < t
-                b1 = model.NewBoolVar("")
-                model.Add(variables.var_task_starts[task] <= t).OnlyEnforceIf(b1)
-                model.Add(variables.var_task_starts[task] > t).OnlyEnforceIf(b1.Not())
+                b1 = model.new_bool_var("")
+                model.add(variables.var_task_starts[task] <= t).only_enforce_if(b1)
+                model.add(variables.var_task_starts[task] > t).only_enforce_if(~b1)
 
                 # t < e[i]
-                b2 = model.NewBoolVar("")
-                model.Add(t < variables.var_task_ends[task]).OnlyEnforceIf(b2)
-                model.Add(t >= variables.var_task_ends[task]).OnlyEnforceIf(b2.Not())
+                b2 = model.new_bool_var("")
+                model.add(t < variables.var_task_ends[task]).only_enforce_if(b2)
+                model.add(t >= variables.var_task_ends[task]).only_enforce_if(~b2)
 
                 # b1 and b2 (b1 * b2)
-                b3 = model.NewBoolVar("")
-                model.AddBoolAnd([b1, b2]).OnlyEnforceIf(b3)
-                model.AddBoolOr([b1.Not(), b2.Not()]).OnlyEnforceIf(b3.Not())
+                b3 = model.new_bool_var("")
+                model.add_bool_and([b1, b2]).only_enforce_if(b3)
+                model.add_bool_or([~b1, ~b2]).only_enforce_if(~b3)
 
                 # b1 * b2 * r[i]
-                model.AddMultiplicationEquality(variables.task_resource_needs[task, t], [b3, resource_needs[task]])
+                model.add_multiplication_equality(variables.task_resource_needs[task, t], [b3, resource_needs[task]])
 
         # Capture total resource needs
         for t in range(times_min, times_max + 1):
-            model.Add(variables.resource_needs[t] == sum([variables.task_resource_needs[task, t] * 1
+            model.add(variables.resource_needs[t] == sum([variables.task_resource_needs[task, t] * 1
                                                           for task in tasks
                                                           ]
                                                          ))
 
 
     # Objectives
-    variables.make_span = {0: model.NewIntVar(0, max_time, "make_span")}
-    model.AddMaxEquality(
+    variables.make_span = {0: model.new_int_var(0, max_time, "make_span")}
+    model.add_max_equality(
         variables.make_span[0],
         [variables.var_task_ends[task] for task in tasks]
     )
-    variables.total_duration = {0: model.NewIntVar(0, max_time, "make_span")}
-    model.Add(variables.total_duration[0] == sum(variables.var_task_durations.values()))
+    variables.total_duration = {0: model.new_int_var(0, max_time, "make_span")}
+    model.add(variables.total_duration[0] == sum(variables.var_task_durations.values()))
 
-    model.Minimize(variables.make_span[0] + variables.total_duration[0])
+    model.minimize(variables.make_span[0] + variables.total_duration[0])
 
     solver = cp_model.CpSolver()
     start = time()
-    status = solver.Solve(model=model)
+    status = solver.solve(model=model)
     total_time = time() - start
     print("total time:", total_time)
 

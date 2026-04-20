@@ -50,27 +50,27 @@ m_cost = {
 max_time = 8
 
 variables_task_ends = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+    task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
 }
 
 variables_task_starts = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+    task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
 }
 
 variables_sequence = {
-    (t1, t2): model.NewBoolVar(f"task {t1} --> task {t2}")
+    (t1, t2): model.new_bool_var(f"task {t1} --> task {t2}")
     for (t1, t2) in m
 }
 
 # 3. Objectives
 
-total_changeover_time = model.NewIntVar(0, max_time, "total_changeover_time")
+total_changeover_time = model.new_int_var(0, max_time, "total_changeover_time")
 
 total_changeover_time = sum(
     [variables_sequence[(t1, t2)]*m_cost[(t1, t2)] for (t1, t2) in m]
 )
 
-model.Minimize(total_changeover_time)
+model.minimize(total_changeover_time)
 
 
 # 4. Constraints
@@ -78,11 +78,11 @@ model.Minimize(total_changeover_time)
 # Add duration
 
 for task in tasks:
-    model.Add(
+    model.add(
         variables_task_ends[task] - variables_task_starts[task] == processing_time[task_to_product[task]]
     )
 
-# AddCircuits
+# add_circuits
 
 arcs = list()
 
@@ -96,28 +96,28 @@ for (from_task, to_task) in m:
     )
 
     if from_task != 0 and to_task != 0:
-        model.Add(
+        model.add(
             variables_task_ends[from_task] <= variables_task_starts[to_task]
-        ).OnlyEnforceIf(variables_sequence[(from_task, to_task)])
+        ).only_enforce_if(variables_sequence[(from_task, to_task)])
 
-model.AddCircuit(arcs)
+model.add_circuit(arcs)
 
 
 # Solve
 
 solver = cp_model.CpSolver()
-status = solver.Solve(model=model)
+status = solver.solve(model=model)
 
 # Post-process
 
 if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
     for task in tasks:
         print(f'Task {task} ',
-              solver.Value(variables_task_starts[task]), solver.Value(variables_task_ends[task])
+              solver.value(variables_task_starts[task]), solver.value(variables_task_ends[task])
               )
 
     for (t1, t2) in m:
-        print(f'{t1} --> {t2}:   {solver.Value(variables_sequence[(t1, t2)])}')
+        print(f'{t1} --> {t2}:   {solver.value(variables_sequence[(t1, t2)])}')
 
 elif status == cp_model.INFEASIBLE:
     print("Infeasible")

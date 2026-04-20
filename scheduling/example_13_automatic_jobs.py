@@ -23,15 +23,15 @@ breaks = {(0, 1), (2, 3), (4, 6), (7, 10)}
 # 2. Decision Variables
 
 var_task_starts = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_start") for task in tasks
+    task: model.new_int_var(0, max_time, f"task_{task}_start") for task in tasks
 }
 
 var_task_ends = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+    task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
 }
 
 var_task_intervals = {
-    task: model.NewIntervalVar(
+    task: model.new_interval_var(
         var_task_starts[task],
         processing_time[task_to_product[task]],
         var_task_ends[task],
@@ -41,7 +41,7 @@ var_task_intervals = {
 }
 
 var_task_intervals_auto = {
-    task: model.NewIntervalVar(
+    task: model.new_interval_var(
         var_task_starts[task],
         1,
         var_task_starts[task] + 1,
@@ -52,7 +52,7 @@ var_task_intervals_auto = {
 }
 
 var_task_seq = {
-    (t1, t2): model.NewBoolVar(f"task {t1} --> task {t2}")
+    (t1, t2): model.new_bool_var(f"task {t1} --> task {t2}")
     for t1 in tasks
     for t2 in tasks
     if t1 != t2
@@ -61,29 +61,29 @@ var_task_seq = {
 
 arcs = []
 for t1 in tasks:
-    tmp_1 = model.NewBoolVar(f'first_to_{t1}')
+    tmp_1 = model.new_bool_var(f'first_to_{t1}')
     arcs.append([0, t1, tmp_1])
 
-    tmp_2 = model.NewBoolVar(f'{t1}_to_last')
+    tmp_2 = model.new_bool_var(f'{t1}_to_last')
     arcs.append([t1, 0, tmp_2])
 
     for t2 in tasks:
         if t1 == t2:
             continue
 
-        tmp_3 = model.NewBoolVar(f'{t1}_to_{t2}')
+        tmp_3 = model.new_bool_var(f'{t1}_to_{t2}')
         arcs.append([t1, t2, var_task_seq[t1, t2]])
 
-        model.Add(
+        model.add(
             var_task_ends[t1] <= var_task_starts[t2]
-        ).OnlyEnforceIf(var_task_seq[t1, t2])
+        ).only_enforce_if(var_task_seq[t1, t2])
 
-model.AddCircuit(arcs)
+model.add_circuit(arcs)
 
 
 # Add break time
 variables_breaks = {
-    (start, end): model.NewFixedSizeIntervalVar(start=start, size=end-start, name='a_break')
+    (start, end): model.new_fixed_size_interval_var(start=start, size=end-start, name='a_break')
     for (start, end) in breaks
 }
 
@@ -92,25 +92,25 @@ intervals = list(var_task_intervals_auto.values()) + list(variables_breaks.value
 # task, resource reduction for breaks
 demands = [1]*len(tasks) + [1]*len(breaks)
 
-model.AddCumulative(intervals=intervals, demands=demands, capacity=1)
+model.add_cumulative(intervals=intervals, demands=demands, capacity=1)
 
 
 # 3. Objectives
 
-make_span = model.NewIntVar(0, max_time, "make_span")
+make_span = model.new_int_var(0, max_time, "make_span")
 
-model.AddMaxEquality(
+model.add_max_equality(
     make_span,
     [var_task_ends[task] for task in tasks]
 )
 
-model.Minimize(make_span)
+model.minimize(make_span)
 
 
 # 4. Solve
 
 solver = cp_model.CpSolver()
-status = solver.Solve(model=model)
+status = solver.solve(model=model)
 
 
 # 5. Results
@@ -120,16 +120,16 @@ if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
     print('===========================  TASKS SUMMARY  ===========================')
     for task in tasks:
         print(f'Task {task} ',
-              solver.Value(var_task_starts[task]), solver.Value(var_task_ends[task]),
+              solver.value(var_task_starts[task]), solver.value(var_task_ends[task]),
               )
 
-    print('Make-span:', solver.Value(make_span))
+    print('Make-span:', solver.value(make_span))
     print('=======================  ALLOCATION & SEQUENCE  =======================')
     if True:
         for t1 in tasks:
             for t2 in tasks:
                 if t1 != t2:
-                    value = solver.Value(var_task_seq[(t1, t2)])
+                    value = solver.value(var_task_seq[(t1, t2)])
                     print(f'{t1} --> {t2}  {value}')
                     # if value == 1 and t2 != 0:
                     #     print(f'{t1} --> {t2}   {task_to_product[t1]} >> {task_to_product[t2]}')#  cost: {m_cost[m, t1, t2]}')

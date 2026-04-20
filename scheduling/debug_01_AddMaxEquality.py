@@ -5,18 +5,18 @@ from ortools.sat.python import cp_model
 
 model = cp_model.CpModel()
 
-x = model.NewBoolVar('x')
-y = model.NewBoolVar('y')
-z = model.NewBoolVar('z')
+x = model.new_bool_var('x')
+y = model.new_bool_var('y')
+z = model.new_bool_var('z')
 
-model.AddMaxEquality(z, [0, y]).OnlyEnforceIf(x)
-model.Minimize(1)
+model.add_max_equality(z, [0, y]).only_enforce_if(x)
+model.minimize(1)
 
 solver = cp_model.CpSolver()
-status = solver.Solve(model=model)
+status = solver.solve(model=model)
 
 if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-    print(f'x {solver.Value(x)}, y {solver.Value(y)}, z {solver.Value(z)}')
+    print(f'x {solver.value(x)}, y {solver.value(y)}, z {solver.value(z)}')
 elif status == cp_model.INFEASIBLE:
     print("Infeasible")
 elif status == cp_model.MODEL_INVALID:
@@ -31,26 +31,26 @@ from ortools.sat.python import cp_model
 
 model = cp_model.CpModel()
 
-x = model.NewBoolVar('x')
-y = model.NewBoolVar('y')
-z = model.NewBoolVar('z')
+x = model.new_bool_var('x')
+y = model.new_bool_var('y')
+z = model.new_bool_var('z')
 
-Max = model.NewBoolVar('max')
-Min = model.NewBoolVar('min')
+Max = model.new_bool_var('max')
+Min = model.new_bool_var('min')
 
-model.AddMaxEquality(Max, [0, y])
-model.AddMinEquality(Min, [0, y])
+model.add_max_equality(Max, [0, y])
+model.add_min_equality(Min, [0, y])
 
-model.Add(z == Max).OnlyEnforceIf(z)
-model.Add(z == Min).OnlyEnforceIf(z.Not())
+model.add(z == Max).only_enforce_if(z)
+model.add(z == Min).only_enforce_if(~z)
 
-model.Minimize(1)
+model.minimize(1)
 
 solver = cp_model.CpSolver()
-status = solver.Solve(model=model)
+status = solver.solve(model=model)
 
 if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-    print(f'x {solver.Value(x)}, y {solver.Value(y)}, z {solver.Value(z)}')
+    print(f'x {solver.value(x)}, y {solver.value(y)}, z {solver.value(z)}')
 elif status == cp_model.INFEASIBLE:
     print("Infeasible")
 elif status == cp_model.MODEL_INVALID:

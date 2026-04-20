@@ -24,8 +24,8 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
 
   def OnSolutionCallback(self):
     print('Solution %i, time = %f s, objective = %i, makespan = %i' %
-          (self.__solution_count, self.WallTime(), self.ObjectiveValue(),
-           self.Value(self.__makespan)))
+          (self.__solution_count, self.WallTime(), self.objective_value(),
+           self.value(self.__makespan)))
     self.__solution_count += 1
 
 
@@ -156,17 +156,17 @@ def main(args):
 
       # Create main interval for the task.
       suffix_name = '_j%i_t%i' % (job_id, task_id)
-      start = model.NewIntVar(0, horizon, 'start' + suffix_name)
-      duration = model.NewIntVar(min_duration, max_duration,
+      start = model.new_int_var(0, horizon, 'start' + suffix_name)
+      duration = model.new_int_var(min_duration, max_duration,
                                  'duration' + suffix_name)
-      end = model.NewIntVar(0, horizon, 'end' + suffix_name)
+      end = model.new_int_var(0, horizon, 'end' + suffix_name)
 
       # Store the start for the solution.
       job_starts[(job_id, task_id)] = start
 
       # Add precedence with previous task in the same job.
       if previous_end:
-        model.Add(start >= previous_end)
+        model.add(start >= previous_end)
       previous_end = end
 
       # Create alternative intervals.
@@ -177,21 +177,21 @@ def main(args):
         if jobs[job_id][task_id][alt_id][0] == -1:
           continue
         alt_suffix = '_j%i_t%i_a%i' % (job_id, task_id, alt_id)
-        l_presence = model.NewBoolVar('presence' + alt_suffix)
-        l_start = model.NewIntVar(0, horizon, 'start' + alt_suffix)
+        l_presence = model.new_bool_var('presence' + alt_suffix)
+        l_start = model.new_int_var(0, horizon, 'start' + alt_suffix)
         l_duration = task[alt_id][0]
-        l_end = model.NewIntVar(0, horizon, 'end' + alt_suffix)
-        l_interval = model.NewOptionalIntervalVar(
+        l_end = model.new_int_var(0, horizon, 'end' + alt_suffix)
+        l_interval = model.new_optional_interval_var(
             l_start, l_duration, l_end, l_presence, 'interval' + alt_suffix)
-        l_rank = model.NewIntVar(-1, num_jobs, 'rank' + alt_suffix)
+        l_rank = model.new_int_var(-1, num_jobs, 'rank' + alt_suffix)
         l_presences.append(l_presence)
         l_machine = task[alt_id][1]
         l_type = task[alt_id][2]
 
         # Link the original variables with the local ones.
-        model.Add(start == l_start).OnlyEnforceIf(l_presence)
-        model.Add(duration == l_duration).OnlyEnforceIf(l_presence)
-        model.Add(end == l_end).OnlyEnforceIf(l_presence)
+        model.add(start == l_start).only_enforce_if(l_presence)
+        model.add(duration == l_duration).only_enforce_if(l_presence)
+        model.add(end == l_end).only_enforce_if(l_presence)
 
         # Add the local variables to the right machine.
         intervals_per_machines[l_machine].append(l_interval)
@@ -206,7 +206,7 @@ def main(args):
         job_ranks[(job_id, task_id, alt_id)] = l_rank
 
       # Only one machine can process each lot.
-      model.Add(sum(l_presences) == 1)
+      model.add(sum(l_presences) == 1)
 
     job_ends.append(previous_end)
 
@@ -215,7 +215,7 @@ def main(args):
   for machine_id in all_machines:
     intervals = intervals_per_machines[machine_id]
     if len(intervals) > 1:
-      model.AddNoOverlap(intervals)
+      model.add_no_overlap(intervals)
 
   #----------------------------------------------------------------------------
   # Transition times and transition costs using a circuit constraint.
@@ -233,29 +233,29 @@ def main(args):
 
     for i in all_machine_tasks:
       # Initial arc from the dummy node (0) to a task.
-      start_lit = model.NewBoolVar('')
+      start_lit = model.new_bool_var('')
       arcs.append([0, i + 1, start_lit])
       # If this task is the first, set both rank and start to 0.
-      model.Add(machine_ranks[i] == 0).OnlyEnforceIf(start_lit)
-      model.Add(machine_starts[i] == 0).OnlyEnforceIf(start_lit)
+      model.add(machine_ranks[i] == 0).only_enforce_if(start_lit)
+      model.add(machine_starts[i] == 0).only_enforce_if(start_lit)
       # Final arc from an arc to the dummy node.
-      arcs.append([i + 1, 0, model.NewBoolVar('')])
+      arcs.append([i + 1, 0, model.new_bool_var('')])
       # Self arc if the task is not performed.
-      arcs.append([i + 1, i + 1, machine_presences[i].Not()])
-      model.Add(machine_ranks[i] == -1).OnlyEnforceIf(
-          machine_presences[i].Not())
+      arcs.append([i + 1, i + 1, ~machine_presences[i]])
+      model.add(machine_ranks[i] == -1).only_enforce_if(
+          ~machine_presences[i])
 
       for j in all_machine_tasks:
         if i == j:
           continue
 
-        lit = model.NewBoolVar('%i follows %i' % (j, i))
+        lit = model.new_bool_var('%i follows %i' % (j, i))
         arcs.append([i + 1, j + 1, lit])
-        model.AddImplication(lit, machine_presences[i])
-        model.AddImplication(lit, machine_presences[j])
+        model.add_implication(lit, machine_presences[i])
+        model.add_implication(lit, machine_presences[j])
 
         # Maintain rank incrementally.
-        model.Add(machine_ranks[j] == machine_ranks[i] + 1).OnlyEnforceIf(lit)
+        model.add(machine_ranks[j] == machine_ranks[i] + 1).only_enforce_if(lit)
 
         # Compute the transition time if task j is the successor of task i.
         if machine_resources[i] != machine_resources[j]:
@@ -265,18 +265,18 @@ def main(args):
           transition_time = 0
         # We add the reified transition to link the literals with the times
         # of the tasks.
-        model.Add(machine_starts[j] == machine_ends[i] +
-                  transition_time).OnlyEnforceIf(lit)
+        model.add(machine_starts[j] == machine_ends[i] +
+                  transition_time).only_enforce_if(lit)
     if arcs:
-        model.AddCircuit(arcs)
+        model.add_circuit(arcs)
 
   #----------------------------------------------------------------------------
   # Objective.
-  makespan = model.NewIntVar(0, horizon, 'makespan')
-  model.AddMaxEquality(makespan, job_ends)
+  makespan = model.new_int_var(0, horizon, 'makespan')
+  model.add_max_equality(makespan, job_ends)
   makespan_weight = 1
   transition_weight = 5
-  model.Minimize(makespan * makespan_weight +
+  model.minimize(makespan * makespan_weight +
                  sum(switch_literals) * transition_weight)
 
   #----------------------------------------------------------------------------
@@ -293,14 +293,14 @@ def main(args):
   if parameters:
     text_format.Merge(parameters, solver.parameters)
   solution_printer = SolutionPrinter(makespan)
-  status = solver.Solve(model, solution_printer)
+  status = solver.solve(model, solution_printer)
 
   #----------------------------------------------------------------------------
   # Print solution.
   if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
     for job_id in all_jobs:
       for task_id in range(len(jobs[job_id])):
-        start_value = solver.Value(job_starts[(job_id, task_id)])
+        start_value = solver.value(job_starts[(job_id, task_id)])
         machine = 0
         duration = 0
         select = 0
@@ -314,15 +314,15 @@ def main(args):
             duration = jobs[job_id][task_id][alt_id][0]
             machine = jobs[job_id][task_id][alt_id][1]
             select = alt_id
-            rank = solver.Value(job_ranks[(job_id, task_id, alt_id)])
+            rank = solver.value(job_ranks[(job_id, task_id, alt_id)])
 
         print(
             '  Job %i starts at %i (alt %i, duration %i) with rank %i on machine %i'
             % (job_id, start_value, select, duration, rank, machine))
 
     print('Solve status: %s' % solver.StatusName(status))
-    print('Objective value: %i' % solver.ObjectiveValue())
-    print('Makespan: %i' % solver.Value(makespan))
+    print('Objective value: %i' % solver.objective_value())
+    print('Makespan: %i' % solver.value(makespan))
 
 
 if __name__ == '__main__':

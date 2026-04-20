@@ -8,7 +8,7 @@ function s is to see a sorted dict indexed by tuples
 task 0 is only used in arcs
 
 duration constraint is by end - start = duration
-In Matthieu approach, no such constraint but there is NewOptionalIntervalVar constraints that did this ?
+In Matthieu approach, no such constraint but there is new_optional_interval_var constraints that did this ?
 
 We need task level start and end for convenience of working with more complicated constraints
 """
@@ -65,49 +65,49 @@ m_cost = {
 max_time = 8
 
 variables_task_ends = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+    task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
 }
 
 variables_task_starts = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks
+    task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks
 }
 
 variables_machine_task_starts = {
-    (m, t): model.NewIntVar(0, max_time, f"start_{m}_{t}")
+    (m, t): model.new_int_var(0, max_time, f"start_{m}_{t}")
     for t in tasks
     for m in machines
 }
 variables_machine_task_ends = {
-    (m, t): model.NewIntVar(0, max_time, f"start_{m}_{t}")
+    (m, t): model.new_int_var(0, max_time, f"start_{m}_{t}")
     for t in tasks
     for m in machines
 }
 variables_machine_task_presences = {
-    (m, t): model.NewBoolVar(f"presence_{m}_{t}")
+    (m, t): model.new_bool_var(f"presence_{m}_{t}")
     for t in tasks
     for m in machines
 }
 
 variables_machine_task_sequence = {
-    (m, t1, t2): model.NewBoolVar(f"Machine {m} task {t1} --> task {t2}")
+    (m, t1, t2): model.new_bool_var(f"Machine {m} task {t1} --> task {t2}")
     for (m, t1, t2) in X
 }
 
 # 3. Objectives
 
-total_changeover_time = model.NewIntVar(0, max_time, "total_changeover_time")
+total_changeover_time = model.new_int_var(0, max_time, "total_changeover_time")
 
 total_changeover_time = sum(
     [variables_machine_task_sequence[(m, t1, t2)]*m_cost[(m, t1, t2)] for (m, t1, t2) in X]
 )
 
-make_span = model.NewIntVar(0, max_time, "make_span")
+make_span = model.new_int_var(0, max_time, "make_span")
 
-model.AddMaxEquality(
+model.add_max_equality(
     make_span,
     [variables_task_ends[task] for task in tasks]
 )
-model.Minimize(make_span + total_changeover_time)
+model.minimize(make_span + total_changeover_time)
 
 
 # 4. Constraints
@@ -126,28 +126,28 @@ for task in tasks:
     ]
 
     # this task is only present in one machine
-    model.AddExactlyOne(tmp)
+    model.add_exactly_one(tmp)
 
     # task level link to machine-task level
     for m in task_candidate_machines:
-        model.Add(
+        model.add(
             variables_task_starts[task] == variables_machine_task_starts[m, task]
-        ).OnlyEnforceIf(variables_machine_task_presences[m, task])
+        ).only_enforce_if(variables_machine_task_presences[m, task])
 
-        model.Add(
+        model.add(
             variables_task_ends[task] == variables_machine_task_ends[m, task]
-        ).OnlyEnforceIf(variables_machine_task_presences[m, task])
+        ).only_enforce_if(variables_machine_task_presences[m, task])
 
         # The changeover consideration is done here by Mattheiu's approach
 
 
 # This can be replaced by inverval variable ?
 for task in tasks:
-    model.Add(
+    model.add(
         variables_task_ends[task] - variables_task_starts[task] == processing_time[task_to_product[task]]
     )
 
-# AddCircuits
+# add_circuits
 
 for machine in machines:
 
@@ -165,16 +165,16 @@ for machine in machines:
         )
 
         if from_task != 0 and to_task != 0:
-            model.Add(
+            model.add(
                 variables_task_ends[from_task] <= variables_task_starts[to_task]
-            ).OnlyEnforceIf(variables_machine_task_sequence[(m, from_task, to_task)])
+            ).only_enforce_if(variables_machine_task_sequence[(m, from_task, to_task)])
 
     for task in tasks:
         arcs.append([
-            task, task, variables_machine_task_presences[(machine, task)].Not()
+            task, task, ~variables_machine_task_presences[(machine, task)]
         ])
 
-    model.AddCircuit(arcs)
+    model.add_circuit(arcs)
 
 
 
@@ -183,20 +183,20 @@ for machine in machines:
 # Solve
 
 solver = cp_model.CpSolver()
-status = solver.Solve(model=model)
+status = solver.solve(model=model)
 
 # Post-process
 
 if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
     for task in tasks:
         print(f'Task {task} ',
-              solver.Value(variables_task_starts[task]), solver.Value(variables_task_ends[task])
+              solver.value(variables_task_starts[task]), solver.value(variables_task_ends[task])
               )
 
-    print(solver.Value(make_span))
+    print(solver.value(make_span))
 
     for (m, t1, t2) in sorted(X):
-        value = solver.Value(variables_machine_task_sequence[(m, t1, t2)])
+        value = solver.value(variables_machine_task_sequence[(m, t1, t2)])
         if value == 1:
             print(f'Machine {m}: {t1} --> {t2}  ')
 

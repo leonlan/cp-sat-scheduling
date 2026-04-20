@@ -37,18 +37,18 @@ def create_model(number_of_products, num_of_tasks_per_product, campaign_size, nu
         (t1, t2): 0 if task_to_product[t1] == task_to_product[t2] else 1 for t1 in tasks for t2 in tasks if t1 != t2
     }
 
-    var_task_starts = {task: model.NewIntVar(0, max_time, f"task_{task}_start") for task in tasks}
-    var_task_ends = {task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks}
-    var_machine_task_starts = {(m, t): model.NewIntVar(0, max_time, f"m{m}_t{t}_start") for t in tasks for m in machines}
-    var_machine_task_ends = {(m, t): model.NewIntVar(0, max_time, f"m{m}_t{t}_end") for t in tasks for m in machines}
-    var_machine_task_presences = {(m, t): model.NewBoolVar(f"pre_{m}_{t}") for t in tasks for m in machines}
-    var_machine_task_rank = {(m, t): model.NewIntVar(0, campaign_size-1, f"t_{t}_cu") for t in tasks for m in machines}
-    var_m_t_reach_campaign_end = {(m, t): model.NewBoolVar(f"t{t}_reach_max_on_m{m}") for t in tasks for m in machines}
-    var_m_t_product_change = {(m, t): model.NewBoolVar(f"task_{t}_change_product_on_m{m}") for t in tasks for m in machines}
+    var_task_starts = {task: model.new_int_var(0, max_time, f"task_{task}_start") for task in tasks}
+    var_task_ends = {task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks}
+    var_machine_task_starts = {(m, t): model.new_int_var(0, max_time, f"m{m}_t{t}_start") for t in tasks for m in machines}
+    var_machine_task_ends = {(m, t): model.new_int_var(0, max_time, f"m{m}_t{t}_end") for t in tasks for m in machines}
+    var_machine_task_presences = {(m, t): model.new_bool_var(f"pre_{m}_{t}") for t in tasks for m in machines}
+    var_machine_task_rank = {(m, t): model.new_int_var(0, campaign_size-1, f"t_{t}_cu") for t in tasks for m in machines}
+    var_m_t_reach_campaign_end = {(m, t): model.new_bool_var(f"t{t}_reach_max_on_m{m}") for t in tasks for m in machines}
+    var_m_t_product_change = {(m, t): model.new_bool_var(f"task_{t}_change_product_on_m{m}") for t in tasks for m in machines}
 
     # These intervals is needed otherwise the duration is not constrained
     var_machine_task_intervals = {
-        (m, t): model.NewOptionalIntervalVar(
+        (m, t): model.new_optional_interval_var(
             var_machine_task_starts[m, t],
             processing_time,
             var_machine_task_ends[m, t],
@@ -64,42 +64,42 @@ def create_model(number_of_products, num_of_tasks_per_product, campaign_size, nu
             var_machine_task_presences[m, task]
             for m in task_candidate_machines
         ]
-        model.AddExactlyOne(tmp)
+        model.add_exactly_one(tmp)
 
     # link task-level to machine-task level for start time & end time
     for task in tasks:
         task_candidate_machines = machines
         for m in task_candidate_machines:
-            model.Add(
+            model.add(
                 var_task_starts[task] == var_machine_task_starts[m, task]
-            ).OnlyEnforceIf(var_machine_task_presences[m, task])
+            ).only_enforce_if(var_machine_task_presences[m, task])
 
-            model.Add(
+            model.add(
                 var_task_ends[task] == var_machine_task_ends[m, task]
-            ).OnlyEnforceIf(var_machine_task_presences[m, task])
+            ).only_enforce_if(var_machine_task_presences[m, task])
 
     # Set objective to minimize make-span
-    make_span = model.NewIntVar(0, max_time, "make_span")
-    total_changeover_time = model.NewIntVar(0, max_time, "total_changeover_time")
-    model.AddMaxEquality(make_span, [var_task_ends[task] for task in tasks])
-    model.Add(total_changeover_time == sum(var_m_t_reach_campaign_end[m,t] for m in machines for t in tasks))
-    model.Minimize(make_span)
+    make_span = model.new_int_var(0, max_time, "make_span")
+    total_changeover_time = model.new_int_var(0, max_time, "total_changeover_time")
+    model.add_max_equality(make_span, [var_task_ends[task] for task in tasks])
+    model.add(total_changeover_time == sum(var_m_t_reach_campaign_end[m,t] for m in machines for t in tasks))
+    model.minimize(make_span)
 
     # the bool variables to indicator if t1 -> t2
-    literals = {(m, t1, t2): model.NewBoolVar(f"{t1} -> {t2}")
+    literals = {(m, t1, t2): model.new_bool_var(f"{t1} -> {t2}")
                 for m in machines for t1 in tasks for t2 in tasks if t1 != t2}
 
     # the technical variables to allow flexible campaigning
-    max_values = {(m, t1, t2): model.NewIntVar(0, max_time, f"{t1} -> {t2}")
+    max_values = {(m, t1, t2): model.new_int_var(0, max_time, f"{t1} -> {t2}")
                   for m in machines for t1 in tasks for t2 in tasks if t1 != t2}
 
     # schedule the tasks
     for m in machines:
         arcs = []
         for t1 in tasks:
-            arcs.append([-1, t1, model.NewBoolVar(f"first_to_{t1}")])
-            arcs.append([t1, -1, model.NewBoolVar(f"{t1}_to_last")])
-            arcs.append([t1, t1, var_machine_task_presences[(m, t1)].Not()])
+            arcs.append([-1, t1, model.new_bool_var(f"first_to_{t1}")])
+            arcs.append([t1, -1, model.new_bool_var(f"{t1}_to_last")])
+            arcs.append([t1, t1, ~var_machine_task_presences[(m, t1)]])
 
             for t2 in tasks:
                 if t1 == t2:
@@ -107,47 +107,47 @@ def create_model(number_of_products, num_of_tasks_per_product, campaign_size, nu
                 arcs.append([t1, t2, literals[m, t1, t2]])
 
                 # If A -> B then var_m_t_product_change>=1  (can be 0 if the last task in a machine)
-                model.Add(var_m_t_product_change[m, t1] >= product_change_indicator[t1, t2]).OnlyEnforceIf(
+                model.add(var_m_t_product_change[m, t1] >= product_change_indicator[t1, t2]).only_enforce_if(
                     literals[m, t1, t2]
                 )
 
                 # If var_m_t_product_change=1 then the campaign must end
-                model.Add(var_m_t_reach_campaign_end[m, t1] >= var_m_t_product_change[m, t1])
+                model.add(var_m_t_reach_campaign_end[m, t1] >= var_m_t_product_change[m, t1])
 
                 # if the campaign ends then there must be changeover time
                 # [ task1 ] -> [ C/O ] -> [ task 2]
-                model.Add(
+                model.add(
                     var_task_ends[t1] + var_m_t_reach_campaign_end[m, t1]*changeover_time <= var_task_starts[t2]
-                ).OnlyEnforceIf(
+                ).only_enforce_if(
                     literals[m, t1, t2]
                 )
 
                 # model could also decide to end the campaign before it reaches size limit, then reset the rank for t2
-                # has to do this in two steps since AddMaxEquality is not compatible with OnlyEnforceIf
-                model.AddMaxEquality(
+                # has to do this in two steps since add_max_equality is not compatible with only_enforce_if
+                model.add_max_equality(
                     max_values[m, t1, t2],
                     [0, var_machine_task_rank[m, t1] + 1 - var_m_t_reach_campaign_end[m, t1]*campaign_size]
                 )
-                model.Add(var_machine_task_rank[m, t2] == max_values[m, t1, t2]).OnlyEnforceIf(literals[m, t1, t2])
+                model.add(var_machine_task_rank[m, t2] == max_values[m, t1, t2]).only_enforce_if(literals[m, t1, t2])
 
-        model.AddCircuit(arcs)
+        model.add_circuit(arcs)
 
     return model, make_span
 
 
 def get_solutions(model, solver):
     vars_sol = {}
-    for i, var in enumerate(model.Proto().variables):
-        value = solver.ResponseProto().solution[i]
+    for i, var in enumerate(model.proto().variables):
+        value = solver.response_proto().solution[i]
         vars_sol[var.name] = value
     return vars_sol
 
 
 def add_hints(model, solution):
-    for i, var in enumerate(model.Proto().variables):
+    for i, var in enumerate(model.proto().variables):
         if var.name in solution:
-            model.Proto().solution_hint.vars.append(i)
-            model.Proto().solution_hint.values.append(solution[var.name])
+            model.proto().solution_hint.vars.append(i)
+            model.proto().solution_hint.values.append(solution[var.name])
 
 
 def create_model_for_test():
@@ -179,17 +179,17 @@ if __name__ == '__main__':
         for phase in phases:
             phase_id, max_time = phase['phase_id'], phase['max_time']
             print('----------------------------')
-            model.ClearHints()
+            model.clear_hints()
             if phase_id == 0:
                 solver = cp_model.CpSolver()
             # if phase_id > 0 and 'solution' in locals():
             #     print("Add hints")
             #     add_hints(model, solution)
-            print('number of variables in solution hints:', len(model.Proto().solution_hint.vars))
+            print('number of variables in solution hints:', len(model.proto().solution_hint.vars))
             solver.parameters.max_time_in_seconds = max_time
             start = time()
-            status = solver.Solve(model=model)
-            print('number of solutions:', solver.ResponseProto().solution)
+            status = solver.solve(model=model)
+            print('number of solutions:', solver.response_proto().solution)
 
             if status == 1 or status == 3:
                 print(f'error status : {status}')
@@ -199,7 +199,7 @@ if __name__ == '__main__':
                 obj_list.append(np.nan)
                 continue
 
-            obj_value = solver.ObjectiveValue()
+            obj_value = solver.objective_value()
             obj_list.append(obj_value)
             solution = get_solutions(model, solver)
             total_time = time() - start
@@ -227,17 +227,17 @@ if __name__ == '__main__':
         for phase in phases:
             phase_id, max_time = phase['phase_id'], phase['max_time']
             print('----------------------------')
-            model.ClearHints()
+            model.clear_hints()
             if phase_id == 0:
                 solver = cp_model.CpSolver()
             if phase_id > 0 and 'solution' in locals():
                 print("Add hints")
                 add_hints(model, solution)
-            print('number of variables in solution hints:', len(model.Proto().solution_hint.vars))
+            print('number of variables in solution hints:', len(model.proto().solution_hint.vars))
             solver.parameters.max_time_in_seconds = max_time
             start = time()
-            status = solver.Solve(model=model)
-            print('number of solutions:', solver.ResponseProto().solution)
+            status = solver.solve(model=model)
+            print('number of solutions:', solver.response_proto().solution)
 
             if status == 1 or status == 3:
                 print(f'error status : {status}')
@@ -247,7 +247,7 @@ if __name__ == '__main__':
                 obj_list.append(np.nan)
                 continue
 
-            obj_value = solver.ObjectiveValue()
+            obj_value = solver.objective_value()
             obj_list.append(obj_value)
             solution = get_solutions(model, solver)
             total_time = time() - start
@@ -271,26 +271,26 @@ if __name__ == '__main__':
     for m in range(M):
         model, obj_var = create_model_for_test()
 
-        target_variable = [x for x in model.Proto().variables if x.name == 'make_span'][0]
+        target_variable = [x for x in model.proto().variables if x.name == 'make_span'][0]
 
         obj_list = []
 
         for phase in phases:
             phase_id, max_time = phase['phase_id'], phase['max_time']
             print('----------------------------')
-            model.ClearHints()
+            model.clear_hints()
             if phase_id == 0:
                 solver = cp_model.CpSolver()
             if phase_id > 0 and 'solution' in locals():
                 # print("Add hints")
                 # add_hints(model, solution)
-                model.Add(obj_var <= int(obj_value))
+                model.add(obj_var <= int(obj_value))
 
-            print('number of variables in solution hints:', len(model.Proto().solution_hint.vars))
+            print('number of variables in solution hints:', len(model.proto().solution_hint.vars))
             solver.parameters.max_time_in_seconds = max_time
             start = time()
-            status = solver.Solve(model=model)
-            print('number of solutions:', solver.ResponseProto().solution)
+            status = solver.solve(model=model)
+            print('number of solutions:', solver.response_proto().solution)
 
             if status == 1 or status == 3:
                 print(f'error status : {status}')
@@ -300,7 +300,7 @@ if __name__ == '__main__':
                 obj_list.append(np.nan)
                 continue
 
-            obj_value = solver.ObjectiveValue()
+            obj_value = solver.objective_value()
             obj_list.append(obj_value)
             solution = get_solutions(model, solver)
             total_time = time() - start
@@ -322,27 +322,27 @@ if __name__ == '__main__':
     for m in range(M):
         model, obj_var = create_model_for_test()
 
-        target_variable = [x for x in model.Proto().variables if x.name == 'make_span'][0]
+        target_variable = [x for x in model.proto().variables if x.name == 'make_span'][0]
 
         obj_list = []
 
         for phase in phases:
             phase_id, max_time = phase['phase_id'], phase['max_time']
             print('----------------------------')
-            model.ClearHints()
+            model.clear_hints()
             if phase_id == 0:
                 solver = cp_model.CpSolver()
             if phase_id > 0 and 'solution' in locals():
                 print("Add hints")
                 add_hints(model, solution)
                 print("Using the obj achieved from last run as LB")
-                model.Add(obj_var <= int(obj_value))
+                model.add(obj_var <= int(obj_value))
 
-            print('number of variables in solution hints:', len(model.Proto().solution_hint.vars))
+            print('number of variables in solution hints:', len(model.proto().solution_hint.vars))
             solver.parameters.max_time_in_seconds = max_time
             start = time()
-            status = solver.Solve(model=model)
-            print('number of solutions:', solver.ResponseProto().solution)
+            status = solver.solve(model=model)
+            print('number of solutions:', solver.response_proto().solution)
 
             if status == 1 or status == 3:
                 print(f'error status : {status}')
@@ -352,7 +352,7 @@ if __name__ == '__main__':
                 obj_list.append(np.nan)
                 continue
 
-            obj_value = solver.ObjectiveValue()
+            obj_value = solver.objective_value()
             obj_list.append(obj_value)
             solution = get_solutions(model, solver)
             total_time = time() - start

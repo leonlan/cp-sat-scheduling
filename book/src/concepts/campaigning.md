@@ -11,7 +11,7 @@ changeovers. Typical rules:
 
 Create a set of potential campaigns, each with start/end/duration/presence,
 and variables linking tasks to campaigns. Sequence campaigns (not tasks)
-using `AddCircuit`. The campaign-level changeover cost sits in the gap
+using `add_circuit`. The campaign-level changeover cost sits in the gap
 between campaigns.
 
 Pros: close to the business view. Cons: more variables, scales worse.
@@ -27,9 +27,9 @@ Keep tasks as the atomic unit and attach a rank variable
 - if a changeover happens, `cumul[t2] = 0` and `end[t1] + changeover <= start[t2]`.
 
 A `reach_max[t]` boolean fires when `cumul[t] == campaign_size - 1`, forcing a
-reset and changeover. `AddMaxEquality(max_value, [0, cumul[t1] + 1 -
+reset and changeover. `add_max_equality(max_value, [0, cumul[t1] + 1 -
 reach_end[t1] * campaign_size])` is a useful trick to compute the next rank
-under an `OnlyEnforceIf`.
+under an `only_enforce_if`.
 
 Pros: fewer variables, scales better. Cons: trickier to explain.
 

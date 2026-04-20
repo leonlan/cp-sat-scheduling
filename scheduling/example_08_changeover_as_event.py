@@ -42,40 +42,40 @@ m_cost = {
 max_time = 8
 
 variables_task_ends = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks_0
+    task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks_0
 }
 
 variables_task_starts = {
-    task: model.NewIntVar(0, max_time, f"task_{task}_end") for task in tasks_0
+    task: model.new_int_var(0, max_time, f"task_{task}_end") for task in tasks_0
 }
 
 variables_machine_task_starts = {
-    (m, t): model.NewIntVar(0, max_time, f"start_{m}_{t}")
+    (m, t): model.new_int_var(0, max_time, f"start_{m}_{t}")
     for t in tasks_0
     for m in machines
 }
 
 variables_machine_task_ends = {
-    (m, t): model.NewIntVar(0, max_time, f"start_{m}_{t}")
+    (m, t): model.new_int_var(0, max_time, f"start_{m}_{t}")
     for t in tasks_0
     for m in machines
 }
 
 variables_machine_task_presences = {
-    (m, t): model.NewBoolVar(f"presence_{m}_{t}")
+    (m, t): model.new_bool_var(f"presence_{m}_{t}")
     for t in tasks_0
     for m in machines
 }
 
 variables_machine_task_sequence = {
-    (m, t1, t2): model.NewBoolVar(f"Machine {m} task {t1} --> task {t2}")
+    (m, t1, t2): model.new_bool_var(f"Machine {m} task {t1} --> task {t2}")
     for (m, t1, t2) in X
 }
 
 # intervals
 # ! This can replace the end - start = duration constrain
 variables_machine_task_intervals = {
-    (m, task): model.NewOptionalIntervalVar(
+    (m, task): model.new_optional_interval_var(
         variables_machine_task_starts[m, task],
         processing_time[task_to_product[task]],
         variables_machine_task_ends[m, task],
@@ -90,21 +90,21 @@ variables_machine_task_intervals = {
 # Add change over-related variables !!!
 
 variables_co_starts = {
-    (t1, t2): model.NewIntVar(0, max_time, f"co_t{t1}_to_t{t2}_start") for t1 in tasks_0 for t2 in tasks_0 if t1 != t2
+    (t1, t2): model.new_int_var(0, max_time, f"co_t{t1}_to_t{t2}_start") for t1 in tasks_0 for t2 in tasks_0 if t1 != t2
 }
 variables_co_ends = {
-    (t1, t2): model.NewIntVar(0, max_time, f"co_t{t1}_to_t{t2}_end") for t1 in tasks_0 for t2 in tasks_0 if t1 != t2
+    (t1, t2): model.new_int_var(0, max_time, f"co_t{t1}_to_t{t2}_end") for t1 in tasks_0 for t2 in tasks_0 if t1 != t2
 }
 variables_machine_co_starts = {
-    (m, t1, t2): model.NewIntVar(0, max_time, f"m{m}_co_t{t1}_to_t{t2}_start")
+    (m, t1, t2): model.new_int_var(0, max_time, f"m{m}_co_t{t1}_to_t{t2}_start")
     for t1 in tasks_0 for t2 in tasks_0 for m in machines if t1 != t2
 }
 variables_machine_co_ends = {
-    (m, t1, t2): model.NewIntVar(0, max_time, f"m{m}_co_t{t1}_to_t{t2}_end")
+    (m, t1, t2): model.new_int_var(0, max_time, f"m{m}_co_t{t1}_to_t{t2}_end")
     for t1 in tasks_0 for t2 in tasks_0 for m in machines if t1 != t2
 }
 variables_machine_co_presences = {
-    (m, t1, t2): model.NewBoolVar(f"co_presence_m{m}_t{t1}_t{t2}")
+    (m, t1, t2): model.new_bool_var(f"co_presence_m{m}_t{t1}_t{t2}")
     for t1 in tasks_0
     for t2 in tasks_0
     for m in machines
@@ -113,7 +113,7 @@ variables_machine_co_presences = {
 
 
 variables_machine_co_intervals = {
-    (m, t1, t2): model.NewOptionalIntervalVar(
+    (m, t1, t2): model.new_optional_interval_var(
         variables_machine_co_starts[m, t1, t2],
         changeover_time[task_to_product[t2]],
         variables_machine_co_ends[m, t1, t2],
@@ -134,14 +134,14 @@ variables_machine_co_intervals = {
 
 # 3. Objectives
 
-make_span = model.NewIntVar(0, max_time, "make_span")
+make_span = model.new_int_var(0, max_time, "make_span")
 
-model.AddMaxEquality(
+model.add_max_equality(
     make_span,
     [variables_task_ends[task] for task in tasks]
 )
 
-model.Minimize(make_span)
+model.minimize(make_span)
 
 
 # 4. Constraints
@@ -154,20 +154,20 @@ for task in tasks:
         for m in task_candidate_machines
     ]
     # this task is only present in one machine
-    model.AddExactlyOne(tmp)
+    model.add_exactly_one(tmp)
 
 
 # task level link to machine-task level
 for task in tasks_0:
     task_candidate_machines = machines
     for m in task_candidate_machines:
-        model.Add(
+        model.add(
             variables_task_starts[task] == variables_machine_task_starts[m, task]
-        ).OnlyEnforceIf(variables_machine_task_presences[m, task])
+        ).only_enforce_if(variables_machine_task_presences[m, task])
 
-        model.Add(
+        model.add(
             variables_task_ends[task] == variables_machine_task_ends[m, task]
-        ).OnlyEnforceIf(variables_machine_task_presences[m, task])
+        ).only_enforce_if(variables_machine_task_presences[m, task])
 
 
 # co level link to machine-co level
@@ -176,19 +176,19 @@ for t1 in tasks_0:
         if t1 != t2:
 
             for m in machines:
-                model.Add(
+                model.add(
                     variables_co_starts[t1, t2] == variables_machine_co_starts[m, t1, t2]
-                ).OnlyEnforceIf(variables_machine_co_presences[m, t1, t2])
+                ).only_enforce_if(variables_machine_co_presences[m, t1, t2])
 
-                model.Add(
+                model.add(
                     variables_co_ends[t1, t2] == variables_machine_co_ends[m, t1, t2]
-                ).OnlyEnforceIf(variables_machine_co_presences[m, t1, t2])
+                ).only_enforce_if(variables_machine_co_presences[m, t1, t2])
 
 
 # for dummies: Force task 0 (dummy) starts at 0 and is present on all machines
-model.Add(variables_task_starts[0] == 0)
+model.add(variables_task_starts[0] == 0)
 for m in machines:
-    model.Add(variables_machine_task_presences[m, 0] == 1)
+    model.add(variables_machine_task_presences[m, 0] == 1)
 
 
 # Sequence
@@ -207,40 +207,40 @@ for m in machines:
                 # cannot require the time index of task 0 to represent the first and the last position
                 if t2 != 0:
                     # to schedule tasks and c/o
-                    model.Add(
+                    model.add(
                         variables_task_ends[t1] <= variables_co_starts[t1, t2]
-                    ).OnlyEnforceIf(variables_machine_task_sequence[(m, t1, t2)])
+                    ).only_enforce_if(variables_machine_task_sequence[(m, t1, t2)])
 
-                    model.Add(
+                    model.add(
                         variables_co_ends[t1, t2] <= variables_task_starts[t2]
-                    ).OnlyEnforceIf(variables_machine_task_sequence[(m, t1, t2)])
+                    ).only_enforce_if(variables_machine_task_sequence[(m, t1, t2)])
 
-                    model.Add(
+                    model.add(
                         variables_co_ends[t1, t2] - variables_co_starts[t1, t2] == distance
-                    ).OnlyEnforceIf(variables_machine_task_sequence[(m, t1, t2)])
+                    ).only_enforce_if(variables_machine_task_sequence[(m, t1, t2)])
 
                     # ensure intervals are consistent so we can apply resource constraints later
-                    model.Add(
+                    model.add(
                         variables_machine_co_presences[m, t1, t2] == 1
-                    ).OnlyEnforceIf(variables_machine_task_sequence[(m, t1, t2)])
+                    ).only_enforce_if(variables_machine_task_sequence[(m, t1, t2)])
 
-                    model.Add(
+                    model.add(
                         variables_machine_co_presences[m, t1, t2] == 0
-                    ).OnlyEnforceIf(variables_machine_task_sequence[(m, t1, t2)].Not())
+                    ).only_enforce_if(~variables_machine_task_sequence[(m, t1, t2)])
 
 
     for task in tasks:
         arcs.append([
-            task, task, variables_machine_task_presences[(m, task)].Not()
+            task, task, ~variables_machine_task_presences[(m, task)]
         ])
-    model.AddCircuit(arcs)
+    model.add_circuit(arcs)
 
 
 # Solve
 
 
 solver = cp_model.CpSolver()
-status = solver.Solve(model=model)
+status = solver.solve(model=model)
 
 
 # Post-process
@@ -248,10 +248,10 @@ status = solver.Solve(model=model)
 if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
     for task in tasks:
         print(f'Task {task} ',
-              solver.Value(variables_task_starts[task]), solver.Value(variables_task_ends[task])
+              solver.value(variables_task_starts[task]), solver.value(variables_task_ends[task])
               )
 
-    print('Make-span:', solver.Value(make_span))
+    print('Make-span:', solver.value(make_span))
 
     for m in machines:
 
@@ -260,15 +260,15 @@ if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         for t1 in tasks_0:
             for t2 in tasks_0:
                 if t1 != t2:
-                    value = solver.Value(variables_machine_task_sequence[(m, t1, t2)])
+                    value = solver.value(variables_machine_task_sequence[(m, t1, t2)])
                     if value == 1 and t2 != 0:
                         print(f'{t1} --> {t2}   {task_to_product[t1]} >> {task_to_product[t2]}  cost: {m_cost[m, t1, t2]}')
-                        print('variables_machine_task_sequence[t1, t2]', solver.Value(variables_machine_task_sequence[m, t1, t2]))
-                        print('variables_co_starts[t1, t2]', solver.Value(variables_co_starts[t1, t2]))
-                        print('variables_co_ends[t1, t2]', solver.Value(variables_co_ends[t1, t2]))
-                        print('variables_machine_co_presences[m, t1, t2]', solver.Value(variables_machine_co_presences[m, t1, t2]))
-                        print('variables_machine_co_starts[m, t1, t2]', solver.Value(variables_machine_co_starts[m, t1, t2]))
-                        print('variables_machine_co_ends[m, t1, t2]', solver.Value(variables_machine_co_ends[m, t1, t2]))
+                        print('variables_machine_task_sequence[t1, t2]', solver.value(variables_machine_task_sequence[m, t1, t2]))
+                        print('variables_co_starts[t1, t2]', solver.value(variables_co_starts[t1, t2]))
+                        print('variables_co_ends[t1, t2]', solver.value(variables_co_ends[t1, t2]))
+                        print('variables_machine_co_presences[m, t1, t2]', solver.value(variables_machine_co_presences[m, t1, t2]))
+                        print('variables_machine_co_starts[m, t1, t2]', solver.value(variables_machine_co_starts[m, t1, t2]))
+                        print('variables_machine_co_ends[m, t1, t2]', solver.value(variables_machine_co_ends[m, t1, t2]))
                         #print('variables_machine_co_intervals[m, t1, t2]', variables_machine_co_intervals[m, t1, t2])
 
                     if value == 1 and t2 == 0:
