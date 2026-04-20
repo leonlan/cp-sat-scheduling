@@ -17,3 +17,9 @@ A single job with three stages. Each stage is a task indexed by
 
 - [Multi-stage jobs](../concepts/multi-stage.md)
 - [Interval variables](../concepts/intervals.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_21_stages_one_job.py}}
+```

@@ -19,3 +19,9 @@ Extends the single-machine model of 02 to multiple machines.
 
 - [Circuit and sequencing](../concepts/circuit.md) (multi-machine)
 - [Changeover](../concepts/changeover.md) (cost in objective)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_03_seq_multi_stations.py}}
+```

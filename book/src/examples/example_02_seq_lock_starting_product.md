@@ -23,3 +23,9 @@ m_cost = {
 
 - [Changeover](../concepts/changeover.md) (starting product)
 - [Circuit and sequencing](../concepts/circuit.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_02_seq_lock_starting_product.py}}
+```

@@ -18,3 +18,9 @@ variable under an `OnlyEnforceIf`.
 ## Concepts
 
 - [Campaigning](../concepts/campaigning.md) (flexible campaign ends)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_26_campaigning_locked_seq_improved.py}}
+```

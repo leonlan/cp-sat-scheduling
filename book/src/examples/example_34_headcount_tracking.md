@@ -28,3 +28,9 @@ solved values, handling `IntervalVar` specially.
 - [Resources and cumulative](../concepts/resources.md) (time-varying demand)
 - [Breaks](../concepts/breaks.md) (state-dependent duration)
 - [Interval variables](../concepts/intervals.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_34_headcount_tracking.py}}
+```

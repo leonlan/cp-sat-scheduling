@@ -21,3 +21,9 @@ before.
 ## Concepts
 
 - [Shifts](../concepts/shifts.md) (explicit shift assignment)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_17_shift_crossing_mathieu.py}}
+```

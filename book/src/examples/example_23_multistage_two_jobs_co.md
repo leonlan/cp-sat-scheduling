@@ -14,3 +14,9 @@ actually add a changeover constraint; it is a scalability exercise.
 ## Concepts
 
 - [Multi-stage jobs](../concepts/multi-stage.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_23_multistage_two_jobs_co.py}}
+```

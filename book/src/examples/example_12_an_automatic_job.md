@@ -28,3 +28,9 @@ automatic task.
 
 - [Breaks](../concepts/breaks.md) (automatic jobs)
 - [Resources and cumulative](../concepts/resources.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_12_an_automatic_job.py}}
+```

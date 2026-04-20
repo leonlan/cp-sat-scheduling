@@ -21,3 +21,9 @@ task later, it is not only charged abstractly.
 
 - [Changeover](../concepts/changeover.md) (approach 2: in constraint)
 - [Circuit and sequencing](../concepts/circuit.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_04_seq_with_changeover_in_constraint.py}}
+```

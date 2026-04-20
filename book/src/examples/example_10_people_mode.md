@@ -28,3 +28,9 @@ the model; sequencing is similar to 03.
 
 - [Resources and cumulative](../concepts/resources.md) (resource modes)
 - [Circuit and sequencing](../concepts/circuit.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_10_people_mode.py}}
+```

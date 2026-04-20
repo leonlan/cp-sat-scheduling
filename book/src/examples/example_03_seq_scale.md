@@ -19,3 +19,9 @@ matplotlib.
 - [Solver techniques](../concepts/solver-techniques.md) (parallel workers)
 - Sets the baseline that [03c](./example_03_seq_scale_Mathieu.md)
   accelerates.
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_03_seq_scale.py}}
+```

@@ -20,3 +20,9 @@ highly periodic schedules. The file includes a benchmark loop.
 
 - [Breaks](../concepts/breaks.md) (approach 3: start-domain restriction)
 - [Solver techniques](../concepts/solver-techniques.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_29_linear_domain_for_breaks.py}}
+```

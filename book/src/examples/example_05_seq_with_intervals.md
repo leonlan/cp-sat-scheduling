@@ -21,3 +21,9 @@ under `OnlyEnforceIf(seq[m, t1, t2])`.
 
 - [Interval variables](../concepts/intervals.md) (first introduction)
 - [Changeover](../concepts/changeover.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_05_seq_with_intervals.py}}
+```

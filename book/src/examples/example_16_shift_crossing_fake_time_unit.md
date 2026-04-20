@@ -23,3 +23,9 @@ Real breaks are still modeled with `AddCumulative` as usual.
 
 - [Shifts](../concepts/shifts.md) (synthetic break approach)
 - [Breaks](../concepts/breaks.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_16_shift_crossing_fake_time_unit.py}}
+```

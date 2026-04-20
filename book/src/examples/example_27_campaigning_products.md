@@ -24,3 +24,9 @@ parameter set, making it a small sanity check.
 
 - [Campaigning](../concepts/campaigning.md) (multi-product)
 - [Circuit and sequencing](../concepts/circuit.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_27_campaigning_products.py}}
+```

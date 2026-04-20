@@ -22,3 +22,9 @@ small self-contained models that each exercise one feature:
 Useful as a cheat sheet when you want to remember how to express, for
 example, "b = (5 <= x <= 10)". Several of the snippets are commented out
 alternatives, kept for comparison.
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_00_unit_tests.py}}
+```

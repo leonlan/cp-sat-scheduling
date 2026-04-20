@@ -19,3 +19,9 @@ how the overlap indicator is built.
 
 - [CP-SAT basics](../concepts/cp-sat-basics.md) (reification,
   `AddMultiplicationEquality`)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_15_events_overlapping.py}}
+```

@@ -27,3 +27,9 @@ The expected pattern for four tasks `A A A B` is
 - [Campaigning](../concepts/campaigning.md) (approach 1: campaigns as entities)
 - [Circuit and sequencing](../concepts/circuit.md)
 - [Interval variables](../concepts/intervals.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_09_max_number_of_continuous_tasks.py}}
+```

@@ -20,3 +20,9 @@ A task's duration depends on whether its start falls in a break slot.
 - [Breaks](../concepts/breaks.md) (conditional duration)
 - [CP-SAT basics](../concepts/cp-sat-basics.md) (`AddLinearExpressionInDomain`)
 - [Interval variables](../concepts/intervals.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_33_conditional_duration_linear_domain.py}}
+```

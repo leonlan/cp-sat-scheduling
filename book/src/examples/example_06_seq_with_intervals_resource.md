@@ -20,3 +20,9 @@ the operator has to pick one at a time.
 
 - [Resources and cumulative](../concepts/resources.md) (shared operator)
 - [Interval variables](../concepts/intervals.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_06_seq_with_intervals_resource.py}}
+```

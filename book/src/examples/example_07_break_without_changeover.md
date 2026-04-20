@@ -18,3 +18,9 @@ Single machine, four same-product tasks, and a fixed break at `(2, 3)`.
 
 - [Breaks](../concepts/breaks.md) (approach 1: fixed interval in cumulative)
 - [Solver techniques](../concepts/solver-techniques.md) (decision strategies)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_07_break_without_changeover.py}}
+```

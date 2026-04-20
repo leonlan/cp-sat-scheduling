@@ -22,3 +22,9 @@ horizon gives a fast starting point.
 
 - [Solver techniques](../concepts/solver-techniques.md) (hints, phases)
 - [Campaigning](../concepts/campaigning.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_32_solving_by_phases.py}}
+```

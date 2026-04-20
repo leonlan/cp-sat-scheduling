@@ -14,3 +14,9 @@ The two 26 files exist side by side to document the tweak explicitly.
 ## Concepts
 
 - [Campaigning](../concepts/campaigning.md) (flexible campaign ends)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_26_campaigning_locked_seq_improved_flexible.py}}
+```

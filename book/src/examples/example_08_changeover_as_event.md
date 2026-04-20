@@ -36,3 +36,9 @@ constraints (cleaning resource, operator availability, etc.).
 
 - [Changeover](../concepts/changeover.md) (approach 3: as event)
 - [Interval variables](../concepts/intervals.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_08_changeover_as_event.py}}
+```

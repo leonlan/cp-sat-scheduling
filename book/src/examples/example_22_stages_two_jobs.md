@@ -13,3 +13,9 @@ precedence, make-span minimisation).
 ## Concepts
 
 - [Multi-stage jobs](../concepts/multi-stage.md) (stage-level no-overlap)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_22_stages_two_jobs.py}}
+```

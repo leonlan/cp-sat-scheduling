@@ -18,3 +18,9 @@ from 03.
 
 - [Campaigning](../concepts/campaigning.md) (multi-product, multi-machine)
 - [Circuit and sequencing](../concepts/circuit.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_28_campaigning_products_machines.py}}
+```

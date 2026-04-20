@@ -28,3 +28,9 @@ intervals (since breaks do not preempt an auto-type task once started).
 - [Breaks](../concepts/breaks.md) (approach 2: duration stretched)
 - [CP-SAT basics](../concepts/cp-sat-basics.md) (reification,
   `AddMultiplicationEquality`)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_14_task_delaying_break.py}}
+```

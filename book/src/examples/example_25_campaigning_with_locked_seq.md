@@ -19,3 +19,9 @@ this can provide a large speed-up without changing the optimum.
 ## Concepts
 
 - [Campaigning](../concepts/campaigning.md) (task-order heuristic)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_25_campaigning_with_locked_seq.py}}
+```

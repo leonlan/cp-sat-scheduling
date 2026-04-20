@@ -17,3 +17,9 @@ products on a single machine.
 
 - [Circuit and sequencing](../concepts/circuit.md)
 - [Changeover](../concepts/changeover.md) (approach 1: cost in objective)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_01_simple_sequence.py}}
+```

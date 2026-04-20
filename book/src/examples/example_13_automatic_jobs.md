@@ -18,3 +18,9 @@ sequenced.
 - [Breaks](../concepts/breaks.md) (automatic jobs)
 - [Circuit and sequencing](../concepts/circuit.md)
 - [Resources and cumulative](../concepts/resources.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_13_automatic_jobs.py}}
+```

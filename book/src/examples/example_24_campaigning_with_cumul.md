@@ -25,3 +25,9 @@ plotting scalability.
 
 - [Campaigning](../concepts/campaigning.md) (approach 2: cumulative rank)
 - [Circuit and sequencing](../concepts/circuit.md)
+
+## Source
+
+```python
+{{#include ../../../scheduling/example_24_campaigning_with_cumul.py}}
+```
