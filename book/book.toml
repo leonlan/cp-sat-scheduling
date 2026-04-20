@@ -1,0 +1,11 @@
+[book]
+title = "CP for Job Shop Problems"
+authors = ["Leon Lan"]
+description = "Notes on scheduling with OR-Tools CP-SAT"
+language = "en"
+src = "src"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = ""
