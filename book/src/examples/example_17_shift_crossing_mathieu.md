@@ -9,10 +9,10 @@ exactly one shift, and its start/end are constrained to the shift window:
 
 ```python
 for t in tasks:
-    model.AddExactlyOne(presence[s, t] for s in shifts)
+    model.add_exactly_one(presence[s, t] for s in shifts)
     for s in shifts:
-        model.Add(start[t] >= shift_start[s]).OnlyEnforceIf(presence[s, t])
-        model.Add(end[t]   <= shift_end[s]  ).OnlyEnforceIf(presence[s, t])
+        model.add(start[t] >= shift_start[s]).only_enforce_if(presence[s, t])
+        model.add(end[t]   <= shift_end[s]  ).only_enforce_if(presence[s, t])
 ```
 
 The rest of the model (real breaks, cumulative, makespan) is the same as

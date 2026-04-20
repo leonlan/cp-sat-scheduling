@@ -8,7 +8,7 @@ A single job with three stages. Each stage is a task indexed by
 `(job, stage)`.
 
 - `var_job_starts`/`var_job_ends` are the min/max of task starts/ends via
-  `AddMinEquality` / `AddMaxEquality`.
+  `add_min_equality` / `add_max_equality`.
 - Stage precedence: `end[job, s] <= start[job, s + 1]`.
 - Each stage has an interval, and no-overlap is enforced per stage (only
   one job at a time per stage).

@@ -12,7 +12,7 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     def on_solution_callback(self):
         self.__solution_count += 1
         for v in self.__variables:
-            print('%s=%i' % (v, self.Value(v)), end=' ')
+            print('%s=%i' % (v, self.value(v)), end=' ')
         print()
 
     def solution_count(self):
@@ -26,12 +26,12 @@ def SearchForAllSolutionsSampleSat():
 
     # Creates the variables.
     num_vals = 3
-    x = model.NewIntVar(0, num_vals - 1, 'x')
-    y = model.NewIntVar(0, num_vals - 1, 'y')
-    z = model.NewIntVar(0, num_vals - 1, 'z')
+    x = model.new_int_var(0, num_vals - 1, 'x')
+    y = model.new_int_var(0, num_vals - 1, 'y')
+    z = model.new_int_var(0, num_vals - 1, 'z')
 
     # Create the constraints.
-    model.Add(x != y)
+    model.add(x != y)
 
     # Create a solver and solve.
     solver = cp_model.CpSolver()
@@ -39,9 +39,9 @@ def SearchForAllSolutionsSampleSat():
     # Enumerate all solutions.
     solver.parameters.enumerate_all_solutions = True
     # Solve.
-    status = solver.Solve(model, solution_printer)
+    status = solver.solve(model, solution_printer)
 
-    print('Status = %s' % solver.StatusName(status))
+    print('Status = %s' % solver.status_name(status))
     print('Number of solutions found: %i' % solution_printer.solution_count())
 
 

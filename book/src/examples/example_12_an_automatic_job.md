@@ -14,7 +14,7 @@ first time unit (setup), after which the machine runs on its own.
   *setup* intervals and the breaks:
 
   ```python
-  model.AddCumulative(
+  model.add_cumulative(
       intervals=setup_intervals + break_intervals,
       demands=[1] * (len(tasks) + len(breaks)),
       capacity=1,

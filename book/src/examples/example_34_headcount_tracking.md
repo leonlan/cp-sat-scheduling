@@ -8,12 +8,12 @@ Compares three ways of tracking resource (headcount) usage over time when
 task durations are state-dependent (can be 2 or 3 depending on whether
 the task overlaps a break).
 
-- **Method 0 - native cumulative.** One `AddCumulative` with the actual
+- **Method 0 - native cumulative.** One `add_cumulative` with the actual
   task intervals.
 - **Method 1 - cumulative with start time.** Per-time-slot booleans
   `var_task_starts_presence[t, i]` indicate task start. Per-duration
   "did a task starting within the last `d` slots cover this slot?"
-  booleans are combined with `AddMaxEquality`. Per-task, per-time
+  booleans are combined with `add_max_equality`. Per-task, per-time
   resource variables are then switched by `var_task_overlap_break[t]`.
 - **Method 2 - cumulative with overlap.** Encodes the same "is this
   slot inside the task?" using per-slot overlap booleans (`start <= t`

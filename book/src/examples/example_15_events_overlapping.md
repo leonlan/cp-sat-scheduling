@@ -18,7 +18,7 @@ how the overlap indicator is built.
 ## Concepts
 
 - [CP-SAT basics](../concepts/cp-sat-basics.md) (reification,
-  `AddMultiplicationEquality`)
+  `add_multiplication_equality`)
 
 ## Source
 

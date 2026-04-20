@@ -22,9 +22,9 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
     self.__solution_count = 0
     self.__makespan = makespan
 
-  def OnSolutionCallback(self):
+  def on_solution_callback(self):
     print('Solution %i, time = %f s, objective = %i, makespan = %i' %
-          (self.__solution_count, self.WallTime(), self.objective_value(),
+          (self.__solution_count, self.wall_time(), self.objective_value(),
            self.value(self.__makespan)))
     self.__solution_count += 1
 
@@ -320,7 +320,7 @@ def main(args):
             '  Job %i starts at %i (alt %i, duration %i) with rank %i on machine %i'
             % (job_id, start_value, select, duration, rank, machine))
 
-    print('Solve status: %s' % solver.StatusName(status))
+    print('Solve status: %s' % solver.status_name(status))
     print('Objective value: %i' % solver.objective_value())
     print('Makespan: %i' % solver.value(makespan))
 

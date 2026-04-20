@@ -7,10 +7,10 @@
 Compares two ways of enforcing that tasks never overlap a periodic break:
 
 - **Method 1** (`run_model_1`): model every break as a fixed interval and
-  put them in `AddCumulative` (or `AddNoOverlap`) along with tasks.
+  put them in `add_cumulative` (or `add_no_overlap`) along with tasks.
 - **Method 2**: keep tasks as intervals but restrict their start values
   to a domain that excludes break-overlapping starts, using
-  `AddLinearExpressionInDomain`.
+  `add_linear_expression_in_domain`.
 
 The second method skips creating many break intervals and lets CP-SAT
 propagate directly on the start domain, which can be faster for

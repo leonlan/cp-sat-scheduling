@@ -21,17 +21,17 @@ def main():
         for d in all_days:
             for s in all_shifts:
                 shifts[(n, d,
-                        s)] = model.NewBoolVar('shift_n%id%is%i' % (n, d, s))
+                        s)] = model.new_bool_var('shift_n%id%is%i' % (n, d, s))
 
     # Each shift is assigned to exactly one nurse in the schedule period.
     for d in all_days:
         for s in all_shifts:
-            model.AddExactlyOne(shifts[(n, d, s)] for n in all_nurses)
+            model.add_exactly_one(shifts[(n, d, s)] for n in all_nurses)
 
     # Each nurse works at most one shift per day.
     for n in all_nurses:
         for d in all_days:
-            model.AddAtMostOne(shifts[(n, d, s)] for s in all_shifts)
+            model.add_at_most_one(shifts[(n, d, s)] for s in all_shifts)
 
     # Try to distribute the shifts evenly, so that each nurse works
     # min_shifts_per_nurse shifts. If this is not possible, because the total
@@ -47,8 +47,8 @@ def main():
         for d in all_days:
             for s in all_shifts:
                 num_shifts_worked.append(shifts[(n, d, s)])
-        model.Add(min_shifts_per_nurse <= sum(num_shifts_worked))
-        model.Add(sum(num_shifts_worked) <= max_shifts_per_nurse)
+        model.add(min_shifts_per_nurse <= sum(num_shifts_worked))
+        model.add(sum(num_shifts_worked) <= max_shifts_per_nurse)
 
     # Creates the solver and solve.
     solver = cp_model.CpSolver()
@@ -77,7 +77,7 @@ def main():
                 for n in range(self._num_nurses):
                     is_working = False
                     for s in range(self._num_shifts):
-                        if self.Value(self._shifts[(n, d, s)]):
+                        if self.value(self._shifts[(n, d, s)]):
                             is_working = True
                             print('  Nurse %i works shift %i' % (n, s))
                     if not is_working:
@@ -95,13 +95,13 @@ def main():
                                                     num_days, num_shifts,
                                                     solution_limit)
 
-    solver.Solve(model, solution_printer)
+    solver.solve(model, solution_printer)
 
     # Statistics.
     print('\nStatistics')
-    print('  - conflicts      : %i' % solver.NumConflicts())
-    print('  - branches       : %i' % solver.NumBranches())
-    print('  - wall time      : %f s' % solver.WallTime())
+    print('  - conflicts      : %i' % solver.num_conflicts())
+    print('  - branches       : %i' % solver.num_branches())
+    print('  - wall time      : %f s' % solver.wall_time())
     print('  - solutions found: %i' % solution_printer.solution_count())
 
 

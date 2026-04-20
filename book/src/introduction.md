@@ -32,16 +32,16 @@ model = cp_model.CpModel()
 # ... start/end/interval/bool vars
 
 # 3. Objective
-make_span = model.NewIntVar(0, max_time, "make_span")
-model.AddMaxEquality(make_span, [ends[t] for t in tasks])
-model.Minimize(make_span)
+make_span = model.new_int_var(0, max_time, "make_span")
+model.add_max_equality(make_span, [ends[t] for t in tasks])
+model.minimize(make_span)
 
 # 4. Constraints
 # ... precedence, resources, circuits, ...
 
 # 5. Solve and post-process
 solver = cp_model.CpSolver()
-status = solver.Solve(model)
+status = solver.solve(model)
 ```
 
 The rest of the book explains what goes into step 4.

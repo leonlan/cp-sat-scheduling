@@ -75,11 +75,11 @@ for job_id, job in enumerate(jobs_data):
         print(suffix, machine_time)
 
         # define int variables here
-        start_var = model.NewIntVar(0, horizon, 'start' + suffix)
-        end_var = model.NewIntVar(0, horizon, 'end' + suffix)
+        start_var = model.new_int_var(0, horizon, 'start' + suffix)
+        end_var = model.new_int_var(0, horizon, 'end' + suffix)
 
         # define interval variable
-        interval_var = model.NewIntervalVar(start_var, duration, end_var,
+        interval_var = model.new_interval_var(start_var, duration, end_var,
                                             'interval' + suffix)
 
         # fill the dict
@@ -91,10 +91,10 @@ for job_id, job in enumerate(jobs_data):
 """
 machine_to_intervals
   - 0
-    - interval_var_1: model.NewIntervalVar(
-                        start_var: model.NewIntVar, 
+    - interval_var_1: model.new_interval_var(
+                        start_var: model.new_int_var, 
                         duration: int, 
-                        end_var: model.NewIntVar, 
+                        end_var: model.new_int_var, 
                         'interval_0_1'
                         )
     - interval_var_2
@@ -111,29 +111,29 @@ for machine in all_machines:
     print(machine)
     the_list_of_inverval_variables = machine_to_intervals[machine]
     print(the_list_of_inverval_variables)
-    model.AddNoOverlap(machine_to_intervals[machine])
+    model.add_no_overlap(machine_to_intervals[machine])
 
 # Precedences inside a job.
 for job_id, job in enumerate(jobs_data):
     for task_id in range(len(job) - 1):
-        model.Add(all_tasks[job_id, task_id +
+        model.add(all_tasks[job_id, task_id +
                             1].start >= all_tasks[job_id, task_id].end)
 
 
 # Makespan objective.
-obj_var = model.NewIntVar(0, horizon, 'makespan')
+obj_var = model.new_int_var(0, horizon, 'makespan')
 
 LIST = [all_tasks[job_id, len(job) - 1].end for job_id, job in enumerate(jobs_data)]
 
-model.AddMaxEquality(
+model.add_max_equality(
     obj_var,
     LIST
 )
 
-model.Minimize(obj_var)
+model.minimize(obj_var)
 
 solver = cp_model.CpSolver()
-status = solver.Solve(model)
+status = solver.solve(model)
 
 assigned_task_type = collections.namedtuple('assigned_task_type',
                                             'start job index duration')
@@ -146,7 +146,7 @@ if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         for task_id, task in enumerate(job):
             machine = task[0]
             assigned_jobs[machine].append(
-                assigned_task_type(start=solver.Value(
+                assigned_task_type(start=solver.value(
                     all_tasks[job_id, task_id].start),
                                    job=job_id,
                                    index=task_id,
@@ -178,7 +178,7 @@ if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         output += sol_line
 
     # Finally print the solution found.
-    print(f'Optimal Schedule Length: {solver.ObjectiveValue()}')
+    print(f'Optimal Schedule Length: {solver.objective_value()}')
     print(output)
 else:
     print('No solution found.')

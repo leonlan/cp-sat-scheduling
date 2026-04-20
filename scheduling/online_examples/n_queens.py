@@ -25,7 +25,7 @@ class NQueenSolutionPrinter(cp_model.CpSolverSolutionCallback):
         all_queens = range(len(self.__queens))
         for i in all_queens:
             for j in all_queens:
-                if self.Value(self.__queens[j]) == i:
+                if self.value(self.__queens[j]) == i:
                     # There is a queen in column j, row i.
                     print('Q', end=' ')
                 else:
@@ -42,7 +42,7 @@ def main(board_size):
     # Creates the variables.
     # The array index is the column, and the value is the row.
     queens = [
-        model.NewIntVar(0, board_size - 1, 'x%i' % i) for i in range(board_size)
+        model.new_int_var(0, board_size - 1, 'x%i' % i) for i in range(board_size)
     ]
 
     # Creates the constraints.
@@ -60,13 +60,13 @@ def main(board_size):
     solver = cp_model.CpSolver()
     solution_printer = NQueenSolutionPrinter(queens)
     solver.parameters.enumerate_all_solutions = True
-    solver.Solve(model, solution_printer)
+    solver.solve(model, solution_printer)
 
     # Statistics.
     print('\nStatistics')
-    print(f'  conflicts      : {solver.NumConflicts()}')
-    print(f'  branches       : {solver.NumBranches()}')
-    print(f'  wall time      : {solver.WallTime()} s')
+    print(f'  conflicts      : {solver.num_conflicts()}')
+    print(f'  branches       : {solver.num_branches()}')
+    print(f'  wall time      : {solver.wall_time()} s')
     print(f'  solutions found: {solution_printer.solution_count()}')
 
 

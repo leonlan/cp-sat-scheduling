@@ -4,7 +4,7 @@
 
 ## What it does
 
-Extends 21 with a second job. The per-stage `AddNoOverlap` now actually
+Extends 21 with a second job. The per-stage `add_no_overlap` now actually
 does work: with two jobs, stage `s` can only run one of them at a time.
 
 Structure is otherwise identical to 21 (min/max for job start/end, stage

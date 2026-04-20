@@ -8,7 +8,7 @@ Moves the changeover out of the objective and into the precedence
 constraint. If `seq[m, t1, t2]` is true, then
 
 ```python
-model.Add(end[t1] + distance <= start[t2]).OnlyEnforceIf(seq[m, t1, t2])
+model.add(end[t1] + distance <= start[t2]).only_enforce_if(seq[m, t1, t2])
 ```
 
 where `distance` is the changeover time between the two products. The

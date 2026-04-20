@@ -12,8 +12,8 @@ Extends the cumulative-rank campaigning to **multiple products**.
   product boundary.
 - `var_reach_campaign_end[t1] >= var_product_change[t1]`: a product
   change forces the campaign to end (and therefore a changeover).
-- The `AddMaxEquality` trick from 26 is used to reset or increment the
-  rank under `OnlyEnforceIf(literals[t1, t2])`.
+- The `add_max_equality` trick from 26 is used to reset or increment the
+  rank under `only_enforce_if(literals[t1, t2])`.
 - An optional heuristic locks `cumul[t-1] <= cumul[t]` per product group
   to speed things up.
 

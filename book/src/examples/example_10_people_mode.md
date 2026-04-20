@@ -13,7 +13,7 @@ the model; sequencing is similar to 03.
 - `variables_task_processing_time[t]` is derived from the mode:
 
   ```python
-  model.Add(
+  model.add(
       processing_time_var[t] == sum(
           processing_time[product[t], k] * mode[t, k] for k in modes
       )
@@ -21,7 +21,7 @@ the model; sequencing is similar to 03.
   ```
 
 - Standard machine-assignment variables (`presence[m, t]`,
-  `start[m, t]`, `end[m, t]`), per-machine `AddCircuit`, and task-level
+  `start[m, t]`, `end[m, t]`), per-machine `add_circuit`, and task-level
   links complete the model.
 
 ## Concepts

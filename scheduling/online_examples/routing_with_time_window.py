@@ -52,7 +52,7 @@ def create_data_model():
 
 def print_solution(data, manager, routing, solution):
     """Prints solution on console."""
-    print(f'Objective: {solution.ObjectiveValue()}')
+    print(f'Objective: {solution.objective_value()}')
     time_dimension = routing.GetDimensionOrDie('Time')
     total_time = 0
     for vehicle_id in range(data['num_vehicles']):
@@ -63,7 +63,7 @@ def print_solution(data, manager, routing, solution):
             plan_output += '{0} Time({1},{2}) -> '.format(
                 manager.IndexToNode(index), solution.Min(time_var),
                 solution.Max(time_var))
-            index = solution.Value(routing.NextVar(index))
+            index = solution.value(routing.NextVar(index))
         time_var = time_dimension.CumulVar(index)
         plan_output += '{0} Time({1},{2})\n'.format(manager.IndexToNode(index),
                                                     solution.Min(time_var),

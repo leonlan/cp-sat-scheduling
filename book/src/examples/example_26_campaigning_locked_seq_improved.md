@@ -11,9 +11,9 @@ the size limit if that gives a better objective.
 The order lock becomes `start[t-1] <= start[t]` (no longer `end <= start`),
 which is looser and compatible with flexible campaign ends.
 
-Also introduces the `AddMaxEquality(max_values, [0, cumul[t1] + 1 -
+Also introduces the `add_max_equality(max_values, [0, cumul[t1] + 1 -
 reach_max[t1] * campaign_size])` trick for computing the next rank
-variable under an `OnlyEnforceIf`.
+variable under an `only_enforce_if`.
 
 ## Concepts
 

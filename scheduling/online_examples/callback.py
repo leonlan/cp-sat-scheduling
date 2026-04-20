@@ -17,14 +17,14 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
         # for x in self.__variables:
         #     print(x)
         #     print(self)
-        #     print(self.Value(x))
+        #     print(self.value(x))
 
         for v in self.__variables:
             # print(v)
-            # print(self.Value(vars[v]))
-            print('%s=%i' % (v, self.Value(v)), end=' ')
+            # print(self.value(vars[v]))
+            print('%s=%i' % (v, self.value(v)), end=' ')
 
-            # print(f"{v}, {self.Value(v)}", end=' ')
+            # print(f"{v}, {self.value(v)}", end=' ')
 
 
         print()
@@ -42,14 +42,14 @@ def SearchForAllSolutionsSampleSat():
     num_vals = 3
     tasks = {'a', 'b', 'c'}
     vars = {
-        task: model.NewIntVar(0, num_vals - 1, f"task_{task}") for task in tasks
+        task: model.new_int_var(0, num_vals - 1, f"task_{task}") for task in tasks
     }
-    # x = model.NewIntVar(0, num_vals - 1, 'x')
-    # y = model.NewIntVar(0, num_vals - 1, 'y')
-    # z = model.NewIntVar(0, num_vals - 1, 'z')
+    # x = model.new_int_var(0, num_vals - 1, 'x')
+    # y = model.new_int_var(0, num_vals - 1, 'y')
+    # z = model.new_int_var(0, num_vals - 1, 'z')
 
     # Create the constraints.
-    model.Add(vars['a'] != vars['b'])
+    model.add(vars['a'] != vars['b'])
 
     # Create a solver and solve.
     solver = cp_model.CpSolver()
@@ -59,12 +59,12 @@ def SearchForAllSolutionsSampleSat():
     # Enumerate all solutions.
     solver.parameters.enumerate_all_solutions = True
     # Solve.
-    status = solver.Solve(model, solution_printer)
+    status = solver.solve(model, solution_printer)
 
-    #status = solver.Solve(model)
+    #status = solver.solve(model)
 
 
-    # print('Status = %s' % solver.StatusName(status))
+    # print('Status = %s' % solver.status_name(status))
     # print('Number of solutions found: %i' % solution_printer.solution_count())
 
 

@@ -7,10 +7,10 @@
 A scratchpad of CP-SAT primitives. Not a scheduling model. It runs through
 small self-contained models that each exercise one feature:
 
-- `AddBoolOr`, `AddBoolAnd`, `AddBoolXOr` over two booleans.
+- `add_bool_or`, `add_bool_and`, `add_bool_xor` over two booleans.
 - Plain linear constraints with `Minimize`.
-- Reifying "x is between 5 and 10" with chained `OnlyEnforceIf`, with
-  `AddMultiplicationEquality`, and with `AddLinearExpressionInDomain`.
+- Reifying "x is between 5 and 10" with chained `only_enforce_if`, with
+  `add_multiplication_equality`, and with `add_linear_expression_in_domain`.
 - Reading back results with `solver.Value`.
 
 ## Concepts

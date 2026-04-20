@@ -13,7 +13,7 @@ model.
 - For each phase, the model is solved. The resulting solution is read
   back with `get_solutions(model, solver)` and fed as hints to the next
   phase using a custom `add_hints(model, solution)` helper.
-- `model.ClearHints()` resets between phases.
+- `model.clear_hints()` resets between phases.
 
 This is useful when a large horizon is needed for feasibility but a short
 horizon gives a fast starting point.

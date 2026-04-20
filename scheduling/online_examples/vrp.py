@@ -97,7 +97,7 @@ def create_data_model():
 
 def print_solution(data, manager, routing, solution):
     """Prints solution on console."""
-    print(f'Objective: {solution.ObjectiveValue()}')
+    print(f'Objective: {solution.objective_value()}')
     max_route_distance = 0
     for vehicle_id in range(data['num_vehicles']):
         index = routing.Start(vehicle_id)
@@ -106,7 +106,7 @@ def print_solution(data, manager, routing, solution):
         while not routing.IsEnd(index):
             plan_output += ' {} -> '.format(manager.IndexToNode(index))
             previous_index = index
-            index = solution.Value(routing.NextVar(index))
+            index = solution.value(routing.NextVar(index))
             route_distance += routing.GetArcCostForVehicle(
                 previous_index, index, vehicle_id)
         plan_output += '{}\n'.format(manager.IndexToNode(index))

@@ -30,13 +30,13 @@ all_tasks = range(num_tasks)
 
 model = cp_model.CpModel()
 
-model.Proto()
+model.proto()
 
-total_cost = model.NewIntVar(0, 1000, 'total_cost')
+total_cost = model.new_int_var(0, 1000, 'total_cost')
 
-model.Proto()
+model.proto()
 
-tmp = model.Proto()
+tmp = model.proto()
 
 tmp.name
 
@@ -48,7 +48,7 @@ for i in all_workers:
     t = []
     for j in all_tasks:
         print(f'task {j}')
-        t.append(model.NewBoolVar('x[%i,%i]' % (i, j)))
+        t.append(model.new_bool_var('x[%i,%i]' % (i, j)))
     x.append(t)
 
 #   x    worker1   worker2   work3   work4    ...    worker10
@@ -63,41 +63,41 @@ x[0]
 # task 0
 [worker[0] for worker in x]
 
-#[model.Add(sum(x[i][j] for i in all_workers) >= 1) for j in all_tasks]
+#[model.add(sum(x[i][j] for i in all_workers) >= 1) for j in all_tasks]
 
 # Each task is assigned to at least one worker.
 for j in all_tasks:
     # x[worker_index][task_index]
-    model.Add(sum(x[i][j] for i in all_workers) == 1)
+    model.add(sum(x[i][j] for i in all_workers) == 1)
 
 
 for i in all_workers:
     # sum of task indicator * task size for a given people
-    model.Add(sum(sizes[j] * x[i][j] for j in all_tasks) <= total_size_max)
+    model.add(sum(sizes[j] * x[i][j] for j in all_tasks) <= total_size_max)
 
-model.Add(
+model.add(
     total_cost == sum(x[i][j] * cost[i][j] for j in all_tasks for i in all_workers)
 )
 
-model.Minimize(total_cost)
+model.minimize(total_cost)
 
 solver = cp_model.CpSolver()
-status = solver.Solve(model)
+status = solver.solve(model)
 
 if status == cp_model.OPTIMAL:
-    print('Total cost = %i' % solver.ObjectiveValue())
+    print('Total cost = %i' % solver.objective_value())
     print()
     for i in all_workers:
         for j in all_tasks:
-            if solver.Value(x[i][j]) == 1:
+            if solver.value(x[i][j]) == 1:
                 print('Worker ', i, ' assigned to task ', j, '  Cost = ',
                       cost[i][j])
 
     print()
 
-solver.Value(x[0][0])
+solver.value(x[0][0])
 
 print('Statistics')
-print('  - conflicts : %i' % solver.NumConflicts())
-print('  - branches  : %i' % solver.NumBranches())
-print('  - wall time : %f s' % solver.WallTime())
+print('  - conflicts : %i' % solver.num_conflicts())
+print('  - branches  : %i' % solver.num_branches())
+print('  - wall time : %f s' % solver.wall_time())

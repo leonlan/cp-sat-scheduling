@@ -14,9 +14,9 @@ Introduces campaigning by modeling campaigns explicitly as entities:
 - Campaign duration is the sum of task durations assigned to it. Campaign
   start/end bound task starts/ends of its members.
 - A campaign is present iff at least one task is assigned
-  (`AddMaxEquality`).
+  (`add_max_equality`).
 - `var_campaign_durations[c] <= max_conti_task_num` caps campaign size.
-- Campaigns are sequenced with a campaign-level `AddCircuit`, with a
+- Campaigns are sequenced with a campaign-level `add_circuit`, with a
   changeover `distance` enforced between consecutive campaigns.
 
 The expected pattern for four tasks `A A A B` is

@@ -6,11 +6,11 @@
 
 Extends 05 with a globally shared resource (a single operator). After
 building all machine-task intervals, the model adds a single
-`AddCumulative` over them:
+`add_cumulative` over them:
 
 ```python
 intervals = list(variables_machine_task_intervals.values())
-model.AddCumulative(intervals, [1] * len(intervals), 1)
+model.add_cumulative(intervals, [1] * len(intervals), 1)
 ```
 
 With capacity `1`, the two machines can no longer run tasks in parallel:

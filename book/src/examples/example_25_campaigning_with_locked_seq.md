@@ -10,7 +10,7 @@ the task order:
 ```python
 for task in tasks:
     if task != 0:
-        model.Add(var_task_ends[task - 1] <= var_task_starts[task])
+        model.add(var_task_ends[task - 1] <= var_task_starts[task])
 ```
 
 When tasks happen to be indexed in the desired priority/deadline order,

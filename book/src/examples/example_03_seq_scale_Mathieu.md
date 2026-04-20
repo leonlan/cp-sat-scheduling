@@ -4,8 +4,8 @@
 
 ## What it does
 
-Same benchmark as 03b, but switches to `NewOptionalIntervalVar` plus
-`AddNoOverlap` per machine. A helper `add_circuit_constraints(...)`
+Same benchmark as 03b, but switches to `new_optional_interval_var` plus
+`add_no_overlap` per machine. A helper `add_circuit_constraints(...)`
 factors out the per-machine circuit.
 
 The interval-based model scales much better: the main loop here runs

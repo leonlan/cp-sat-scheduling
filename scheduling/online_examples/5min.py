@@ -12,7 +12,7 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     def on_solution_callback(self):
         self.__solution_count += 1
         for v in self.__variables:
-            print('%s=%i' % (v, self.Value(v)), end=' ')
+            print('%s=%i' % (v, self.value(v)), end=' ')
         print()
 
     def solution_count(self):
@@ -20,28 +20,28 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
 
 ##########################################################
 model = cp_model.CpModel()
-x1 = model.NewIntVar(0, 10, 'x1')
-y = model.NewIntVar(0, 20, 'y')
-model.Add(y==x1)
-model.Maximize(y)
+x1 = model.new_int_var(0, 10, 'x1')
+y = model.new_int_var(0, 20, 'y')
+model.add(y==x1)
+model.maximize(y)
 solver = cp_model.CpSolver()
 solution_printer = VarArraySolutionPrinter([x1, y])
-status = solver.Solve(model, solution_printer)
+status = solver.solve(model, solution_printer)
 
 ##########################################################
 
 model = cp_model.CpModel()
-# x1 = model.NewIntVarFromDomain(
-#     cp_model.Domain.FromValues([1, 3, 4, 6]), 'x1'
+# x1 = model.new_int_varFromDomain(
+#     cp_model.Domain.from_values([1, 3, 4, 6]), 'x1'
 # )
-domain = cp_model.Domain.FromValues([1, 3, 4, 6])
-x1 = model.NewIntVarFromDomain(domain,'x1')
-y = model.NewIntVar(0, 20, 'y')
-model.Add(y==x1)
-model.Maximize(y)
+domain = cp_model.Domain.from_values([1, 3, 4, 6])
+x1 = model.new_int_varFromDomain(domain,'x1')
+y = model.new_int_var(0, 20, 'y')
+model.add(y==x1)
+model.maximize(y)
 solver = cp_model.CpSolver()
 solution_printer = VarArraySolutionPrinter([x1, y])
-status = solver.Solve(model, solution_printer)
+status = solver.solve(model, solution_printer)
 
 
 
@@ -49,15 +49,15 @@ status = solver.Solve(model, solution_printer)
 
 model = cp_model.CpModel()
 
-x1 = model.NewBoolVar('x1')
-x2 = model.NewBoolVar('x2')
-y = model.NewIntVar(0,20, 'y')
-model.AddBoolOr([])
-model.Add(y == x1 + x2)
-model.Maximize(y)
+x1 = model.new_bool_var('x1')
+x2 = model.new_bool_var('x2')
+y = model.new_int_var(0,20, 'y')
+model.add_bool_or([])
+model.add(y == x1 + x2)
+model.maximize(y)
 solver = cp_model.CpSolver()
 solution_printer = VarArraySolutionPrinter([x1, x2, y])
-status = solver.Solve(model, solution_printer)
+status = solver.solve(model, solution_printer)
 
 
 ##########################################################
@@ -79,24 +79,24 @@ if True:
     model = cp_model.CpModel()
 
     # Declare our two primary variables.
-    x = model.NewIntVar(0, 10, 'x')
-    y = model.NewIntVar(0, 10, 'y')
+    x = model.new_int_var(0, 10, 'x')
+    y = model.new_int_var(0, 10, 'y')
 
     # Declare our intermediate boolean variable.
-    b = model.NewBoolVar('b')
+    b = model.new_bool_var('b')
 
     # Implement b == (x >= 5).
-    model.Add(x >= 5).OnlyEnforceIf(b)
-    model.Add(x < 5).OnlyEnforceIf(b.Not())
+    model.add(x >= 5).only_enforce_if(b)
+    model.add(x < 5).only_enforce_if(~b)
 
     # Create our two half-reified constraints.
     # First, b implies (y == 10 - x).
-    model.Add(y == 10 - x).OnlyEnforceIf(b)
+    model.add(y == 10 - x).only_enforce_if(b)
     # Second, not(b) implies y == 0.
-    model.Add(y == 0).OnlyEnforceIf(b.Not())
+    model.add(y == 0).only_enforce_if(~b)
 
     # Search for x values in increasing order.
-    model.AddDecisionStrategy([x], cp_model.CHOOSE_FIRST,
+    model.add_decision_strategy([x], cp_model.CHOOSE_FIRST,
                               cp_model.SELECT_MIN_VALUE)
 
     # Create a solver and solve with a fixed search.
@@ -109,7 +109,7 @@ if True:
 
     # Search and print out all solutions.
     solution_printer = VarArraySolutionPrinter([x, y, b])
-    solver.Solve(model, solution_printer)
+    solver.solve(model, solution_printer)
 
 
 
@@ -120,49 +120,49 @@ solver = cp_model.CpSolver()
 #https://developers.google.com/optimization/cp/channeling
 
 model = cp_model.CpModel()
-x = model.NewIntVar(0, 10, 'x')
-b = model.NewBoolVar('b')
-y = model.NewIntVar(0, 10, 'y')
+x = model.new_int_var(0, 10, 'x')
+b = model.new_bool_var('b')
+y = model.new_int_var(0, 10, 'y')
 solution_printer = VarArraySolutionPrinter([x, b, y])
-model.Add(x >= 5).OnlyEnforceIf(b)
-model.Add(x < 5).OnlyEnforceIf(b.Not())
-model.Add(y == b*5 - x)
-model.Maximize(y)
-status = solver.Solve(model, solution_printer)
+model.add(x >= 5).only_enforce_if(b)
+model.add(x < 5).only_enforce_if(~b)
+model.add(y == b*5 - x)
+model.maximize(y)
+status = solver.solve(model, solution_printer)
 
 
 
 model = cp_model.CpModel()
-x = model.NewIntVar(0, 10, 'x')
-b = model.NewBoolVar('b')
-y = model.NewIntVar(0, 10, 'y')
+x = model.new_int_var(0, 10, 'x')
+b = model.new_bool_var('b')
+y = model.new_int_var(0, 10, 'y')
 solution_printer = VarArraySolutionPrinter([x, b, y])
-model.Add(x >= 5).OnlyEnforceIf(b)
-model.Add(x < 5).OnlyEnforceIf(b.Not())
-model.Add(y == b*5 - x)
-model.Maximize(y)
-status = solver.Solve(model, solution_printer)
+model.add(x >= 5).only_enforce_if(b)
+model.add(x < 5).only_enforce_if(~b)
+model.add(y == b*5 - x)
+model.maximize(y)
+status = solver.solve(model, solution_printer)
 
 
 
 model = cp_model.CpModel()
-a = model.NewBoolVar('a')
-b = model.NewBoolVar('b')
-c = model.NewBoolVar('c')
-x = model.NewIntVar(0, 10, 'x')
-y = model.NewIntVar(0, 10, 'y')
-z = model.NewIntVar(0, 10, 'z')
+a = model.new_bool_var('a')
+b = model.new_bool_var('b')
+c = model.new_bool_var('c')
+x = model.new_int_var(0, 10, 'x')
+y = model.new_int_var(0, 10, 'y')
+z = model.new_int_var(0, 10, 'z')
 
 solution_printer = VarArraySolutionPrinter([x,y,z,a,b,c])
 
-model.AddBoolOr(a,b,c)
-model.AddBoolAnd(a,b,c)
-#model.AddBoolAnd(x,b,c)
+model.add_bool_or(a,b,c)
+model.add_bool_and(a,b,c)
+#model.add_bool_and(x,b,c)
 #TypeError: TypeError: x is not a boolean variable
 
 
-model.Maximize(c)
-status = solver.Solve(model, solution_printer)
+model.maximize(c)
+status = solver.solve(model, solution_printer)
 
 # if x < 0, y = 0
 # else, y = 10 -x

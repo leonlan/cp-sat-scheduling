@@ -9,7 +9,7 @@ ordered pair `(t1, t2)` there is an optional interval with its own start,
 end, and presence:
 
 ```python
-co_iv[m, t1, t2] = model.NewOptionalIntervalVar(
+co_iv[m, t1, t2] = model.new_optional_interval_var(
     co_start[m, t1, t2],
     changeover_time[product_of(t2)],
     co_end[m, t1, t2],
@@ -22,11 +22,11 @@ When `seq[m, t1, t2]` is chosen, the model forces the co interval to be
 present, sit between the two tasks, and have the right size:
 
 ```python
-model.Add(end[t1] <= co_start[t1, t2]).OnlyEnforceIf(seq[m, t1, t2])
-model.Add(co_end[t1, t2] <= start[t2]).OnlyEnforceIf(seq[m, t1, t2])
-model.Add(co_end - co_start == distance).OnlyEnforceIf(seq[m, t1, t2])
-model.Add(co_present == 1).OnlyEnforceIf(seq[m, t1, t2])
-model.Add(co_present == 0).OnlyEnforceIf(seq[m, t1, t2].Not())
+model.add(end[t1] <= co_start[t1, t2]).only_enforce_if(seq[m, t1, t2])
+model.add(co_end[t1, t2] <= start[t2]).only_enforce_if(seq[m, t1, t2])
+model.add(co_end - co_start == distance).only_enforce_if(seq[m, t1, t2])
+model.add(co_present == 1).only_enforce_if(seq[m, t1, t2])
+model.add(co_present == 0).only_enforce_if(~seq[m, t1, t2])
 ```
 
 Because the changeover is now an interval, it can take part in cumulative

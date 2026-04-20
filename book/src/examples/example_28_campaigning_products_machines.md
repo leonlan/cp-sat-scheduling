@@ -9,7 +9,7 @@ from 03.
 
 - Rank, `reach_campaign_end`, and `product_change` booleans become
   indexed by `(machine, task)`.
-- Per-machine `AddCircuit`, with machine-task presence self-loops.
+- Per-machine `add_circuit`, with machine-task presence self-loops.
 - Per-machine campaigning rules (continue vs. end campaign) inside each
   circuit's arc constraints.
 - Objective is still `make_span`.
