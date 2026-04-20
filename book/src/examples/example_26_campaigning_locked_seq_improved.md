@@ -2,18 +2,26 @@
 
 **Source:** `scheduling/example_26_campaigning_locked_seq_improved.py`
 
-## What it does
+The previous chapter forced a campaign to end only when the rank hit
+the cap. Sometimes ending earlier gives a better schedule - for example
+when a near-deadline task of a different product is waiting. This
+chapter lets the solver decide.
 
-Refines 25 by removing the "force `reach_max` when `cumul` hits the cap"
-implication. The solver is now free to end a campaign *before* reaching
-the size limit if that gives a better objective.
+The "force reach_max when cumul hits cap" implication is dropped. The
+order lock loosens to `start[t-1] <= start[t]` (from the stricter
+`end <= start`), which is compatible with flexible campaign ends.
 
-The order lock becomes `start[t-1] <= start[t]` (no longer `end <= start`),
-which is looser and compatible with flexible campaign ends.
+The chapter also introduces a recurring trick: since `add_max_equality`
+cannot be wrapped in `only_enforce_if`, compute the next rank outside
+the literal and then assign it conditionally.
 
-Also introduces the `add_max_equality(max_values, [0, cumul[t1] + 1 -
-reach_max[t1] * campaign_size])` trick for computing the next rank
-variable under an `only_enforce_if`.
+```python
+model.add_max_equality(
+    max_values[t1, t2],
+    [0, cumul[t1] + 1 - reach_end[t1] * campaign_size],
+)
+model.add(cumul[t2] == max_values[t1, t2]).only_enforce_if(literals[t1, t2])
+```
 
 ## Concepts
 

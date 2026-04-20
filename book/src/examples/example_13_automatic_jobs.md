@@ -2,16 +2,14 @@
 
 **Source:** `scheduling/example_13_automatic_jobs.py`
 
-## What it does
+Two automatic jobs need an order. The two-interval trick from the
+previous chapter carries over: each task has a full interval and a
+size-1 setup interval.
 
-Same automatic-task idea as 12, now with two tasks that need to be
-sequenced.
-
-- Every task has a full interval plus a size-1 "auto start" interval.
-- A circuit with `seq[t1, t2]` booleans orders the tasks; the selected arc
-  enforces `end[t1] <= start[t2]`.
-- The cumulative uses the auto-start intervals and the break intervals so
-  that breaks only block task *starts*.
+A small `add_circuit` with `seq[t1, t2]` booleans picks the order; each
+selected arc enforces `end[t1] <= start[t2]`. The cumulative still uses
+only the setup intervals and the breaks, so once a task is running no
+break can interrupt it.
 
 ## Concepts
 

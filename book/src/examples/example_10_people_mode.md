@@ -2,27 +2,24 @@
 
 **Source:** `scheduling/example_10_people_mode.py`
 
-## What it does
+Not every task has a fixed resource profile. A common pattern: you can
+run a task with 2 people for 3 time units, or with 3 people for 2.
+Different modes, different (duration, headcount) pairs, same outcome.
 
-Each task can run in one of several "people modes", with different
-processing times and headcount requirements. Only the mode choice changes
-the model; sequencing is similar to 03.
+The solver needs to pick the mode. A one-hot `mode[t, k]` per task drives
+the derivation:
 
-- `variables_task_resource_mode[t, k]`: one-hot bool for task `t`
-  selecting mode `k`. Exactly one mode per task.
-- `variables_task_processing_time[t]` is derived from the mode:
+```python
+model.add(
+    proc_time[t] == sum(
+        processing_time[product[t], k] * mode[t, k] for k in modes
+    )
+)
+```
 
-  ```python
-  model.add(
-      processing_time_var[t] == sum(
-          processing_time[product[t], k] * mode[t, k] for k in modes
-      )
-  )
-  ```
-
-- Standard machine-assignment variables (`presence[m, t]`,
-  `start[m, t]`, `end[m, t]`), per-machine `add_circuit`, and task-level
-  links complete the model.
+With `proc_time[t]` now a variable rather than a constant, the rest of
+the sequencing machinery (machine presence, per-machine `add_circuit`,
+task-level links) carries over unchanged.
 
 ## Concepts
 

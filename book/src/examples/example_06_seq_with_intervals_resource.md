@@ -2,19 +2,20 @@
 
 **Source:** `scheduling/example_06_seq_with_intervals_resource.py`
 
-## What it does
+Two machines, one operator. Even though the machines themselves could run
+in parallel, the human can only be in one place at a time.
 
-Extends 05 with a globally shared resource (a single operator). After
-building all machine-task intervals, the model adds a single
-`add_cumulative` over them:
+Now that tasks are intervals, one line expresses the constraint:
 
 ```python
 intervals = list(variables_machine_task_intervals.values())
 model.add_cumulative(intervals, [1] * len(intervals), 1)
 ```
 
-With capacity `1`, the two machines can no longer run tasks in parallel:
-the operator has to pick one at a time.
+With capacity 1 across all machine intervals, CP-SAT stops issuing
+parallel schedules. This is the first time we see `add_cumulative` doing
+real work, and it is the pattern that all later resource and break
+constraints build on.
 
 ## Concepts
 

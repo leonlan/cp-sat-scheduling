@@ -2,13 +2,18 @@
 
 **Source:** `scheduling/example_22_stages_two_jobs.py`
 
-## What it does
+Add a second job and the previous chapter's scaffolding earns its keep.
+Each stage has only one instance of its equipment, so two jobs cannot
+sit in the same stage at the same time:
 
-Extends 21 with a second job. The per-stage `add_no_overlap` now actually
-does work: with two jobs, stage `s` can only run one of them at a time.
+```python
+for s in stages:
+    model.add_no_overlap([intervals[j, s] for j in jobs])
+```
 
-Structure is otherwise identical to 21 (min/max for job start/end, stage
-precedence, make-span minimisation).
+This is the classic flow-shop pattern. The solver now has to interleave
+the two jobs across stages such that no stage is double-booked and the
+makespan is minimised.
 
 ## Concepts
 

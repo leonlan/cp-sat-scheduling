@@ -2,11 +2,10 @@
 
 **Source:** `scheduling/example_08_changeover_as_event.py`
 
-## What it does
-
-Promotes the changeover to a first-class scheduled event. For every
-ordered pair `(t1, t2)` there is an optional interval with its own start,
-end, and presence:
+The two earlier changeover approaches - cost in objective, gap in
+precedence - both treat the changeover as a number. This chapter promotes
+it to a first-class scheduled event: every ordered pair `(t1, t2)` gets
+its own optional interval with presence, start, end, and duration.
 
 ```python
 co_iv[m, t1, t2] = model.new_optional_interval_var(
@@ -14,11 +13,11 @@ co_iv[m, t1, t2] = model.new_optional_interval_var(
     changeover_time[product_of(t2)],
     co_end[m, t1, t2],
     co_present[m, t1, t2],
-    ...,
+    ...
 )
 ```
 
-When `seq[m, t1, t2]` is chosen, the model forces the co interval to be
+When `seq[m, t1, t2]` is chosen, the model forces the interval to be
 present, sit between the two tasks, and have the right size:
 
 ```python
@@ -29,8 +28,11 @@ model.add(co_present == 1).only_enforce_if(seq[m, t1, t2])
 model.add(co_present == 0).only_enforce_if(~seq[m, t1, t2])
 ```
 
-Because the changeover is now an interval, it can take part in cumulative
-constraints (cleaning resource, operator availability, etc.).
+Why bother with all this? Because once the changeover is an interval, it
+can live inside `add_cumulative` just like a task. Need a cleaner that
+can only do one changeover at a time across multiple machines? Put the
+co-intervals under a shared resource. Not possible with the simpler
+formulations.
 
 ## Concepts
 

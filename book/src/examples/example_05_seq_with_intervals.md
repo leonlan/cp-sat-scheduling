@@ -2,20 +2,20 @@
 
 **Source:** `scheduling/example_05_seq_with_intervals.py`
 
-## What it does
-
-Same setup as 04, but replaces the manual duration constraint
-`end - start == duration` with `new_optional_interval_var`:
+Cleanup chapter. Replace the hand-written `model.add(end - start ==
+duration)` with a proper `new_optional_interval_var`. Behavior is
+identical; the model speaks CP-SAT's native scheduling vocabulary instead.
 
 ```python
-variables_machine_task_intervals[m, t] = model.new_optional_interval_var(
+intervals[m, t] = model.new_optional_interval_var(
     start[m, t], processing_time[product_of(t)], end[m, t],
     presence[m, t], name=f"interval_{m}_{t}",
 )
 ```
 
-The changeover is still encoded as `end[t1] + distance <= start[t2]`
-under `only_enforce_if(seq[m, t1, t2])`.
+A small refactor with big downstream payoff: intervals plug directly into
+`add_no_overlap`, `add_cumulative`, and the break machinery you will see
+next.
 
 ## Concepts
 

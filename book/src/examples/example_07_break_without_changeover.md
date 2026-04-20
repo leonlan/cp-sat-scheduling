@@ -2,17 +2,19 @@
 
 **Source:** `scheduling/example_07_break_without_changeover.py`
 
-## What it does
+Time to introduce breaks. Single machine, four identical tasks, and a
+fixed break window at `(2, 3)` during which the machine is unavailable.
 
-Single machine, four same-product tasks, and a fixed break at `(2, 3)`.
+The trick is to treat the break as just another interval. A
+`new_fixed_size_interval_var` is placed at the break window and dropped
+into an `add_cumulative(intervals, capacity=1)` alongside the task
+intervals. Tasks have nowhere to go during the break and spread around it.
 
-- The break is a `new_fixed_size_interval_var` added to an `add_cumulative(
-  intervals, capacity=1)` alongside task intervals, so tasks are pushed
-  around it.
-- Since all tasks share one product, no changeover logic is needed.
-- Two `add_decision_strategy` calls (on starts and on sequence literals) are
-  used to force the solver to produce the canonical `0 1 2 3 4 0` order
-  instead of a symmetric alternative.
+Because all tasks share one product, no changeover logic is needed - a
+deliberate simplification to isolate the break mechanic. Two
+`add_decision_strategy` calls are thrown in to force the solver to emit
+the canonical order `0 1 2 3 4 0`; without them it returns a correct but
+oddly permuted sequence.
 
 ## Concepts
 

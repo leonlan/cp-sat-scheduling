@@ -2,16 +2,21 @@
 
 **Source:** `scheduling/example_21_stages_one_job.py`
 
-## What it does
+A job can consist of ordered stages. Think of a bakery batch: prepare,
+bake, pack. Each stage uses its own equipment and must follow the
+previous one.
 
-A single job with three stages. Each stage is a task indexed by
-`(job, stage)`.
+Model: tasks are indexed `(job, stage)`. The job's start and end are the
+min and max over its stage starts and ends:
 
-- `var_job_starts`/`var_job_ends` are the min/max of task starts/ends via
-  `add_min_equality` / `add_max_equality`.
-- Stage precedence: `end[job, s] <= start[job, s + 1]`.
-- Each stage has an interval, and no-overlap is enforced per stage (only
-  one job at a time per stage).
+```python
+model.add_min_equality(job_start[job], [start[job, s] for s in stages])
+model.add_max_equality(job_end[job],   [end  [job, s] for s in stages])
+```
+
+Stage precedence is a chain of `end[s] <= start[s + 1]`. With only one
+job, the per-stage `add_no_overlap` is a no-op here, but the scaffolding
+is ready for the next chapter.
 
 ## Concepts
 

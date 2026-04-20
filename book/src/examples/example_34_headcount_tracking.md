@@ -2,26 +2,26 @@
 
 **Source:** `scheduling/example_34_headcount_tracking.py`
 
-## What it does
+The big-picture chapter on resources. `add_cumulative` works when each
+interval's demand is a known constant. But if the demand depends on
+state - the task's mode, whether it overlaps a break, which operator is
+assigned - you need something more flexible.
 
-Compares three ways of tracking resource (headcount) usage over time when
-task durations are state-dependent (can be 2 or 3 depending on whether
-the task overlaps a break).
+Three approaches are benchmarked:
 
-- **Method 0 - native cumulative.** One `add_cumulative` with the actual
-  task intervals.
-- **Method 1 - cumulative with start time.** Per-time-slot booleans
-  `var_task_starts_presence[t, i]` indicate task start. Per-duration
-  "did a task starting within the last `d` slots cover this slot?"
-  booleans are combined with `add_max_equality`. Per-task, per-time
-  resource variables are then switched by `var_task_overlap_break[t]`.
-- **Method 2 - cumulative with overlap.** Encodes the same "is this
-  slot inside the task?" using per-slot overlap booleans (`start <= t`
-  AND `end > t`).
+- **Method 0 - native `add_cumulative`.** Fastest when it applies, but
+  assumes fixed durations and demands.
+- **Method 1 - per-slot start-presence booleans.**
+  `var_task_starts_presence[t, i]` fires when task `t` starts at slot
+  `i`. A "did a task starting within the last `d` slots cover this
+  slot?" indicator (built with `add_max_equality`) lets the duration
+  vary per task. Per-time resource variables are the sum.
+- **Method 2 - per-slot overlap booleans.** The same information
+  encoded via `start <= t < end` booleans for every task-slot pair.
 
-The file also defines a `Variables` dataclass and an
-`extract_solution(...)` helper that converts variable dicts into their
-solved values, handling `IntervalVar` specially.
+Methods 1 and 2 trade model size for flexibility; the chapter also
+ships a small `Variables` dataclass and `extract_solution(...)` helper
+that keeps the boilerplate manageable.
 
 ## Concepts
 

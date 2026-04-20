@@ -2,14 +2,14 @@
 
 **Source:** `scheduling/example_26_campaigning_locked_seq_improved_flexible.py`
 
-## What it does
+Twin of the previous chapter. The two files exist side by side to
+document an important design choice explicitly: *don't* force the
+campaign to end just because the rank hit the cap. Let the solver
+decide.
 
-Twin of [26a](./example_26_campaigning_locked_seq_improved.md) with the
-same flexible campaign-end semantics, plus a comment line that warns
-against forcibly setting `reach_max` when the cap is reached - the
-intended behavior is to let the solver decide.
-
-The two 26 files exist side by side to document the tweak explicitly.
+Model structure is identical to its sibling; the comments here are the
+main difference. Read both to see the "before / after" of the
+refinement.
 
 ## Concepts
 

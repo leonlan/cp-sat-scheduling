@@ -2,14 +2,16 @@
 
 **Source:** `scheduling/example_03_seq_scale_Mathieu.py`
 
-## What it does
+Same benchmark as the previous chapter, but the duration constraint is
+replaced with `new_optional_interval_var` plus per-machine
+`add_no_overlap`. CP-SAT's scheduling engine propagates on intervals far
+more effectively than on generic integer constraints, and the speed-up is
+dramatic: the same hardware that topped out around 12 tasks now handles
+~80.
 
-Same benchmark as 03b, but switches to `new_optional_interval_var` plus
-`add_no_overlap` per machine. A helper `add_circuit_constraints(...)`
-factors out the per-machine circuit.
-
-The interval-based model scales much better: the main loop here runs
-`num_tasks` up to ~80 on the same hardware that 03b handled only up to 12.
+The per-machine circuit is factored into `add_circuit_constraints(...)`
+so the main loop stays readable. That helper is the template for every
+later multi-machine model.
 
 ## Concepts
 

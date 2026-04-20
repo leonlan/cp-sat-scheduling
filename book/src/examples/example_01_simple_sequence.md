@@ -2,16 +2,20 @@
 
 **Source:** `scheduling/example_01_simple_sequence.py`
 
-## What it does
+Three tasks, two products, one machine. Switching between products costs
+time. What is the cheapest order?
 
-The smallest end-to-end scheduling model in the book. Three tasks across two
-products on a single machine.
+The smallest useful scheduling model. A dummy task 0 represents "machine
+idle" so the circuit has a start and an end; sequencing booleans
+`seq[t1, t2]` are stitched together with `add_circuit`; when an arc is
+chosen, `end[t1] <= start[t2]` is enforced. Changeover lives in the
+objective as a cost-weighted sum over the selected arcs, and task duration
+is the manual `end - start == duration`.
 
-- A dummy task `0` acts as the start/end node.
-- `seq[t1, t2]` booleans select the order via `add_circuit`.
-- If `t1 -> t2` is chosen, `end[t1] <= start[t2]` is enforced.
-- The changeover cost lives in the objective: `Minimize(sum(seq * cost))`.
-- Duration is encoded manually with `end - start == duration`.
+Everything after this chapter is a variation: more machines, different
+changeover semantics, extra constraints for breaks or shifts. Understanding
+where the circuit, the presence booleans, and the order-to-time link go is
+the hard part.
 
 ## Concepts
 

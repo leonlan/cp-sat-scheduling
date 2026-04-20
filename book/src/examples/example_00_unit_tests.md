@@ -2,26 +2,20 @@
 
 **Source:** `scheduling/example_00_unit_tests.py`
 
-## What it does
+Before modeling a scheduling problem you have to be fluent in the constraint
+primitives CP-SAT actually speaks. This file is a bench of tiny self-contained
+models, each exercising one feature: boolean combinators, reified equalities
+with `only_enforce_if`, combining conditions via `add_multiplication_equality`,
+and domain constraints for non-contiguous value sets.
 
-A scratchpad of CP-SAT primitives. Not a scheduling model. It runs through
-small self-contained models that each exercise one feature:
-
-- `add_bool_or`, `add_bool_and`, `add_bool_xor` over two booleans.
-- Plain linear constraints with `Minimize`.
-- Reifying "x is between 5 and 10" with chained `only_enforce_if`, with
-  `add_multiplication_equality`, and with `add_linear_expression_in_domain`.
-- Reading back results with `solver.Value`.
+It is the only chapter with no scheduling content. Everything later assumes
+you are comfortable with what lives here. Useful as a cheat sheet when you
+want to remember how to express, for example, "b = (5 <= x <= 10)". Several
+snippets are commented-out alternatives kept for comparison.
 
 ## Concepts
 
 - [CP-SAT basics](../concepts/cp-sat-basics.md)
-
-## Notes
-
-Useful as a cheat sheet when you want to remember how to express, for
-example, "b = (5 <= x <= 10)". Several of the snippets are commented out
-alternatives, kept for comparison.
 
 ## Source
 

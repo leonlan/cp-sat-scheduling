@@ -2,18 +2,21 @@
 
 **Source:** `scheduling/example_15_events_overlapping.py`
 
-## What it does
+Utility chapter. Given two intervals with fixed times, how do you
+express "do they overlap, and by how much"?
 
-Tutorial on detecting whether two intervals overlap, and by how much.
+Two reified booleans - *t1 starts before t2* AND *t1 ends after t2 starts* -
+combined with `add_multiplication_equality` give the overlap indicator.
+The overlap duration is then a conditional `end[t1] - start[t2]`:
 
-- `var_start_earlier_than_start[t1, t2]` = "t1 starts before t2".
-- `var_end_later_than_start[t1, t2]` = "t1 ends after t2 starts".
-- `var_overlap[t1, t2]` is the product of the two, i.e. the AND.
-- `var_overlap_duration[t1, t2]` equals `end[t1] - start[t2]` when there
-  is overlap, else zero.
+```python
+model.add(duration[t1, t2] == end[t1] - start[t2]).only_enforce_if(overlap[t1, t2])
+model.add(duration[t1, t2] == 0).only_enforce_if(~overlap[t1, t2])
+```
 
-Both tasks here have fixed start/end for illustration; the interest is in
-how the overlap indicator is built.
+The pattern recurs whenever you need to *measure* overlap rather than
+*forbid* it. The duration-stretching break model already used a close
+relative; more will show up in the headcount-tracking chapter.
 
 ## Concepts
 

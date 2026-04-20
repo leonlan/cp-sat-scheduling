@@ -2,10 +2,10 @@
 
 **Source:** `scheduling/example_17_shift_crossing_mathieu.py`
 
-## What it does
-
-Alternative to 16. Instead of synthetic breaks, every task is assigned to
-exactly one shift, and its start/end are constrained to the shift window:
+Second take on the same shift problem. Instead of a synthetic break at
+every boundary, assign each task explicitly to one shift via a one-hot
+`presence[shift, task]`. When that presence is true, the task must stay
+inside the shift window.
 
 ```python
 for t in tasks:
@@ -15,8 +15,10 @@ for t in tasks:
         model.add(end[t]   <= shift_end[s]  ).only_enforce_if(presence[s, t])
 ```
 
-The rest of the model (real breaks, cumulative, makespan) is the same as
-before.
+More variables than the synthetic-break approach, but the assignment is
+visible in the solution and easy to extend - per-shift headcount caps,
+operator preferences, shift-specific processing times all drop in
+naturally.
 
 ## Concepts
 

@@ -2,12 +2,13 @@
 
 **Source:** `scheduling/example_02_seq_lock_starting_product.py`
 
-## What it does
+A machine rarely starts empty. Usually some product is already loaded, and
+if the first task happens to be that same product no changeover is needed.
 
-Same single-machine model as 01, but the dummy task is given a fixed
-"starting product". The changeover table is adjusted so that the arc from
-dummy to a task costs zero only when that task's product matches the
-starting product.
+The model is identical to the previous chapter with one change: the
+changeover table depends on the machine's starting product. From the dummy
+task, going to a task of the starting product is free; going to any other
+product costs the regular changeover.
 
 ```python
 m_cost = {
@@ -18,6 +19,9 @@ m_cost = {
     for (t1, t2) in m
 }
 ```
+
+This small tweak is the template for every "initial state" extension later
+in the book.
 
 ## Concepts
 

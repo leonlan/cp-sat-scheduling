@@ -2,23 +2,25 @@
 
 **Source:** `scheduling/example_27_campaigning_products.py`
 
-## What it does
+So far every campaigning example has used one product. Real plants run
+many. A campaign must now end both when it hits the size cap and
+whenever the product changes.
 
-Extends the cumulative-rank campaigning to **multiple products**.
+Two extra booleans per task plug the product-change rule into the
+cumulative-rank model:
 
-- `product_change_indicator[t1, t2]` is 1 iff `t1` and `t2` belong to
-  different products.
-- `var_product_change[t1]` captures whether the arc out of `t1` crosses a
-  product boundary.
-- `var_reach_campaign_end[t1] >= var_product_change[t1]`: a product
-  change forces the campaign to end (and therefore a changeover).
-- The `add_max_equality` trick from 26 is used to reset or increment the
-  rank under `only_enforce_if(literals[t1, t2])`.
-- An optional heuristic locks `cumul[t-1] <= cumul[t]` per product group
-  to speed things up.
+```python
+model.add(var_product_change[t1] == product_change_indicator[t1, t2]).only_enforce_if(literals[t1, t2])
+model.add(var_reach_campaign_end[t1] >= var_product_change[t1])
+```
 
-The `__main__` block prints the expected vs. solver make-span for a
-parameter set, making it a small sanity check.
+The first line captures whether the outgoing arc crosses a product
+boundary; the second escalates any such crossing into a campaign end,
+which in turn forces a changeover via the familiar rank-reset machinery.
+
+An optional per-product order lock (`cumul[t-1] <= cumul[t]`) speeds up
+larger instances. The `__main__` block checks the solver's makespan
+against a closed-form expected value - a handy sanity test.
 
 ## Concepts
 

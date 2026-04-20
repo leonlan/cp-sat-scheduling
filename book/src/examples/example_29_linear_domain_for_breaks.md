@@ -2,19 +2,22 @@
 
 **Source:** `scheduling/example_29_linear_domain_for_breaks.py`
 
-## What it does
+When breaks are periodic - a fixed pattern every shift, every day -
+modeling each break as an interval inflates the model. An alternative
+is to precompute the set of valid task start times (every position that
+doesn't overlap a break) and restrict starts to that set with
+`add_linear_expression_in_domain`.
 
-Compares two ways of enforcing that tasks never overlap a periodic break:
+The file defines two model variants and benchmarks them:
 
-- **Method 1** (`run_model_1`): model every break as a fixed interval and
-  put them in `add_cumulative` (or `add_no_overlap`) along with tasks.
-- **Method 2**: keep tasks as intervals but restrict their start values
-  to a domain that excludes break-overlapping starts, using
-  `add_linear_expression_in_domain`.
+- **Method 1**: breaks as fixed intervals in `add_cumulative` or
+  `add_no_overlap`.
+- **Method 2**: breaks disappear; start domains are constrained.
 
-The second method skips creating many break intervals and lets CP-SAT
-propagate directly on the start domain, which can be faster for
-highly periodic schedules. The file includes a benchmark loop.
+For highly periodic schedules the domain method wins: CP-SAT propagates
+on a small set of start values directly and avoids all the break
+intervals. The trade-off is loss of generality - arbitrary break
+patterns don't translate to clean domains.
 
 ## Concepts
 

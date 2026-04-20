@@ -2,26 +2,24 @@
 
 **Source:** `scheduling/example_14_task_delaying_break.py`
 
-## What it does
+A different way of mixing tasks and breaks. Here the task is *not*
+automatic; if it runs through a break, its effective machine time grows
+by the length of the break.
 
-When a task runs across a break, its total machine time grows by the
-length of the break. This is encoded per time slot:
-
-- `var_task_duration_timeslots[t, i]` = 1 iff task `t` occupies slot `i`.
-  Built from two reified booleans, "starts before i" AND "ends after i",
-  combined with `add_multiplication_equality`.
-- `var_task_new_duration[t] = base + sum(is_break[i] * uses[t, i] for i)`
-  computes the stretched duration.
-- The task interval uses this stretched duration directly.
+The encoding is per time slot. For every slot `i`, a boolean
+`uses[t, i]` fires iff task `t` covers slot `i`. Built as the AND of
+"started by `i`" and "still running after `i`", it becomes one via
+`add_multiplication_equality`. Then
 
 ```python
-var_task_intervals[t] = model.new_interval_var(
-    start[t], new_duration[t], end[t], ...,
-)
+duration[t] = base + sum(is_break[i] * uses[t, i] for i)
 ```
 
-Break intervals are added to `add_cumulative` alongside the task *start*
-intervals (since breaks do not preempt an auto-type task once started).
+adds back the length of every break the task straddles. The task
+interval uses this stretched duration directly.
+
+Heavy on per-slot booleans, but it is the canonical pattern whenever a
+duration depends on a time-dependent condition.
 
 ## Concepts
 

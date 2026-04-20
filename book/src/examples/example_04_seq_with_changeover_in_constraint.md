@@ -2,20 +2,20 @@
 
 **Source:** `scheduling/example_04_seq_with_changeover_in_constraint.py`
 
-## What it does
+There is a subtle bug in the earlier models. We charged changeover cost in
+the objective, but the schedule itself was free to place the next task
+right after the previous one - with no physical gap for the changeover to
+happen. Cost and schedule disagreed.
 
-Moves the changeover out of the objective and into the precedence
-constraint. If `seq[m, t1, t2]` is true, then
+The fix is to put the changeover into the precedence constraint:
 
 ```python
 model.add(end[t1] + distance <= start[t2]).only_enforce_if(seq[m, t1, t2])
 ```
 
-where `distance` is the changeover time between the two products. The
-objective becomes just the makespan.
-
-Now schedule and objective agree: a changeover physically pushes the next
-task later, it is not only charged abstractly.
+Now a changeover actually pushes the next task later. The objective can go
+back to being just the makespan, and the resulting schedule is physically
+executable.
 
 ## Concepts
 

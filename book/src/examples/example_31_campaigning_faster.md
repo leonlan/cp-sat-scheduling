@@ -2,13 +2,13 @@
 
 **Source:** `scheduling/example_31_campaigning_faster.py`
 
-## What it does
+Tuned companion to the multi-product, multi-machine chapter. Same
+problem, same model skeleton; what changes is which heuristics are on,
+how the constraints are ordered, and a few implementation shortcuts.
 
-A tuned variant of 28 (multi-product, multi-machine campaigning) aiming
-for faster solves. The structure is the same; differences are in which
-heuristics are enabled and how the constraints are ordered.
-
-It is the natural next step after 28 when experimenting with scalability.
+Treat this as the "after tuning" version: when the earlier model starts
+to struggle on larger instances, walk through the differences here to
+see which levers were pulled.
 
 ## Concepts
 

@@ -2,10 +2,8 @@
 
 **Source:** `scheduling/example_25_campaigning_with_locked_seq.py`
 
-## What it does
-
-Same cumulative-rank campaigning as 24, but adds a heuristic that locks
-the task order:
+Same cumulative-rank campaigning, with a single heuristic bolted on:
+lock the task order.
 
 ```python
 for task in tasks:
@@ -13,8 +11,9 @@ for task in tasks:
         model.add(var_task_ends[task - 1] <= var_task_starts[task])
 ```
 
-When tasks happen to be indexed in the desired priority/deadline order,
-this can provide a large speed-up without changing the optimum.
+In practice, task indices often already reflect priority or deadline
+order. Telling the solver so upfront prunes a lot of symmetric branches
+without changing the optimum. The speed-up can be an order of magnitude.
 
 ## Concepts
 

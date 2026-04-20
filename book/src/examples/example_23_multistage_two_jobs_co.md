@@ -2,14 +2,13 @@
 
 **Source:** `scheduling/example_23_multistage_two_jobs_co.py`
 
-## What it does
+Same flow-shop model scaled to 6 jobs over 3 stages. No new mechanics -
+stage precedence, per-stage no-overlap, makespan objective - just more
+of everything. It exists to check how CP-SAT handles a realistic-sized
+flow-shop instance.
 
-Scales the multi-stage model of 22 up to 6 jobs over 3 stages. The model
-is identical in shape: stage precedence, per-stage no-overlap,
-`add_max_equality` for makespan, `Minimize(make_span)`.
-
-Despite the filename mentioning `co` (changeover), this version does not
-actually add a changeover constraint; it is a scalability exercise.
+Despite the `co` suffix in the filename, no explicit changeover is
+added; treat it as a scalability exercise.
 
 ## Concepts
 
